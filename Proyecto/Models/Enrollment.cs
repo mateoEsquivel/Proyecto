@@ -9,21 +9,14 @@ namespace Proyecto.Models
     public class Enrollment
     {
         [Key]
-        public int IdBill { get; set; }
-        [Display(Name = "IdHorario")]
-        public int IdSchedule { get; set; }
-        public Schedule Schedules { get; set; }
+        public int IdEnrollment { get; set; }
         [Display(Name = "IdEstudiante")]
         public int StudentId { get; set; }
-        public Student Students { get; set; }
-        [Display(Name = "Créditos")]
-        public int Credits { get; set; }
+        public AspNetUser AspNetUsers { get; set; }
         [Display(Name = "Precio")]
-        public double Amount { get; set; }
-        [Display(Name = "Fecha/Hora")]
         public DateTime Date { get; set; }
-        [Display(Name = "Nota")]
-        public int Score { get; set; }
-        
+        public decimal Total { get; set; }
+        public ICollection<EnrollmentDetail> EnrollmentDetails { get; set; }
+        public ICollection<Bill> Bills { get; set; }
     }
 }
