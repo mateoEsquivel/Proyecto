@@ -10,8 +10,10 @@ namespace Proyecto.Models
     {
         [Key]
         public int IdBill { get; set; }
-        [Display(Name = "CédulaJurídica")]
-        public int LegalID { get; set; }
-        public ICollection<Enrollment> Enrollments { get; set; }
+        public int IdEnrollment { get; set; }
+        public Enrollment Enrollments { get; set; }
+        [Display(Name = "Descuento")]
+        public decimal Discount { get; set; }
+        public double Total { get; set; }
     }
 }
