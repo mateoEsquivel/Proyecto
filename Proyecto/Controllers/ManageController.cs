@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using System.Xml.Linq;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
@@ -15,6 +17,7 @@ namespace Proyecto.Controllers
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
+        private Context db = new Context();
 
         public ManageController()
         {
@@ -72,6 +75,68 @@ namespace Proyecto.Controllers
                 Logins = await UserManager.GetLoginsAsync(userId),
                 BrowserRemembered = await AuthenticationManager.TwoFactorBrowserRememberedAsync(userId)
             };
+            return View(model);
+        }
+
+        //
+        // GET: /Manage/Edit
+        public ActionResult Edit()
+        {
+            var id= User.Identity.GetUserId().ToString();
+            var user = db.AspUser.SingleOrDefault(e => e.Id == id);
+            var userData = db.UserData.SingleOrDefault(e => e.idUser == id);
+            var model = new EditViewModel
+            {
+                UserId = user.Id,
+                Name = userData.Name,
+                LastName = userData.LastName,
+                Phone = user.PhoneNumber,
+                Email = user.Email
+            };
+            return View(model);
+        }
+
+        //
+        // POST: /Manage/Edit
+        [HttpPost]
+        public ActionResult Edit(EditViewModel model)
+        {
+            bool edited = false;
+            string message = null;
+            if (ModelState.IsValid)
+            {
+                var user = db.AspUser.SingleOrDefault(e => e.Email == model.Email && e.Id != model.UserId);
+                if (user != null)
+                {
+                    message = "Correo pertenece a otro usuario";
+                }
+                else
+                {
+                    var userData = db.UserData.SingleOrDefault(e => e.idUser == model.UserId);
+                    userData.Name = model.Name;
+                    userData.LastName = model.LastName;
+                    var user2 = db.AspUser.SingleOrDefault(e => e.Id == model.UserId);
+                    user2.PhoneNumber = model.Phone;
+                    user2.Email = model.Email;
+                    user2.UserName = model.Email;
+                    db.Entry(user2).State = EntityState.Modified;
+                    db.Entry(userData).State = EntityState.Modified;
+                    db.SaveChanges();
+                    message = "Usuario editado";
+                    edited = true;
+                    var AuthenticationManager = HttpContext.GetOwinContext().Authentication;
+                    AuthenticationManager.SignOut();
+                }
+                ViewData["Message"] = message;
+                if (edited)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    return View(model);
+                }
+            }
             return View(model);
         }
 
