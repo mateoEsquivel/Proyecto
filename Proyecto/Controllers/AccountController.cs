@@ -122,7 +122,7 @@ namespace Proyecto.Controllers
                 }
                 else
                 {
-                    var user = new ApplicationUser { UserName = model.Email, Email = model.Email, PhoneNumber=model.Phone};
+                    var user = new ApplicationUser { UserName = model.Email, Email = model.Email, PhoneNumber=model.Phone, LockoutEndDateUtc= DateTime.Now};
                     var result = await UserManager.CreateAsync(user, model.Password);
                     if (result.Succeeded)
                     {

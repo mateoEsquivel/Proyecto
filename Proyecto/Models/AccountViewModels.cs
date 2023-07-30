@@ -96,6 +96,28 @@ namespace Proyecto.Models
         public string RoleId { get; set; }
     }
 
+    public class EditViewModel
+    {
+        [Required]
+        public string UserId { get; set; }
+        [Required]
+        [Display(Name = "Nombre")]
+        public string Name { get; set; }
+
+        [Required]
+        [Display(Name = "Apellidos")]
+        public string LastName { get; set; }
+
+        [Phone]
+        [Display(Name = "Teléfono")]
+        public string Phone { get; set; }
+
+        [Required]
+        [EmailAddress]
+        [Display(Name = "Correo electrónico")]
+        public string Email { get; set; }
+    }
+
     public class ResetPasswordViewModel
     {
         [Required]

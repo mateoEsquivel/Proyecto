@@ -5,12 +5,21 @@
     {
         @Html.AntiForgeryToken()
 
-        <ul class="navbar-nav navbar-right">
-            <li>
-                @Html.ActionLink("Hola " + User.Identity.GetUserName() + "!", "Index", "Manage", routeValues: null, htmlAttributes: new { title = "Manage", @class = "nav-link" })
-            </li>
-            <li><a class="nav-link" href="javascript:document.getElementById('logoutForm').submit()">Cerrar sesión</a></li>
+<ul class="navbar-nav navbar-right">
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Hola @User.Identity.GetUserName() !
+        </a>
+        <ul class="dropdown-menu">
+            @Html.ActionLink("Editar Perfil", "Edit", "Manage", routeValues: null, htmlAttributes: new { title = "Editar", @class = "dropdown-item" })
+            @Html.ActionLink("Cambiar Contraseña", "ChangePassword", "Manage", routeValues: null, htmlAttributes: new { title = "Cambiar Contraseña", @class = "dropdown-item" })
         </ul>
+    </li>
+    @*<li>
+            @Html.ActionLink("Hola " + User.Identity.GetUserName() + "!", "Index", "Manage", routeValues: null, htmlAttributes: new { title = "Manage", @class = "nav-link" })
+        </li>*@
+    <li><a class="nav-link" href="javascript:document.getElementById('logoutForm').submit()">Cerrar sesión</a></li>
+</ul>
     }
 }
 else
