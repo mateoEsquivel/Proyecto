@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNet.Identity
+<!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -23,6 +24,50 @@
                     <li>@Html.ActionLink("Inicio", "Index", "Home", new { area = "" }, new { @class = "nav-link" })</li>
                     <li>@Html.ActionLink("Acerca de", "About", "Home", new { area = "" }, new { @class = "nav-link" })</li>
                     <li>@Html.ActionLink("Contacto", "Contact", "Home", new { area = "" }, new { @class = "nav-link" })</li>
+                    @if (Request.IsAuthenticated)
+                    {
+                        if (Session["Rol"] != null)
+                        {
+                            if (Session["Rol"].ToString() == "ADMIN")
+                            {
+                                <li>
+                                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Usuarios
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        @Html.ActionLink("Crear Usuario", "Register", "Account", routeValues: null, htmlAttributes: new { title = "Crear Usuario", @class = "dropdown-item" })
+                                        <li>
+                                            <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#EditModal">Editar Usuario</a>
+                                        </li>
+                                    </ul>
+                                    <div class="modal fade" id="EditModal" tabindex="-1" aria-labelledby="EditModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            @using (Html.BeginForm("EditAdmin", "Account", FormMethod.Post, new { role = "form" }))
+                                            {
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h1 class="modal-title fs-5" id="EditModalLabel">Editar Usuario</h1>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="form-group">
+                                                            <label for="email" class="form-label">Ingrese el correo del usuario a editar:</label>
+                                                            <input type="email" class="form-control" name="email" id="email" required />
+                                                        </div>
+                                                        <br />
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                                            <button type="submit" class="btn btn-primary">Buscar</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </li>
+                            }
+                        }
+                    }
                 </ul>
                 @Html.Partial("_LoginPartial")
             </div>

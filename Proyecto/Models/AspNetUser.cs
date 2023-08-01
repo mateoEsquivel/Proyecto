@@ -20,6 +20,7 @@ namespace Proyecto.Models
         public bool PhoneNumberConfirmed { get; set;}
         public bool TwoFactorEnabled { get; set; }
         public DateTime LockoutEndDateUtc { get; set; }
+        public bool LockoutEnabled { get; set; }
         public int AccessFailedCount { get; set; }
         [Display(Name = "Correo electrónico")]
         public string UserName { get; set; }

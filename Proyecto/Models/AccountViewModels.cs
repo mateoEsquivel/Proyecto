@@ -116,6 +116,12 @@ namespace Proyecto.Models
         [EmailAddress]
         [Display(Name = "Correo electrónico")]
         public string Email { get; set; }
+
+        [Display(Name="Rol")]
+        public string RoleId { get; set; }
+
+        [Display(Name = "Estado")]
+        public bool Lockout { get; set; }
     }
 
     public class ResetPasswordViewModel

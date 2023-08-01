@@ -1,25 +1,51 @@
 ﻿@using Microsoft.AspNet.Identity
-@if (Request.IsAuthenticated)
+@if (Session["Aux"] != null)
 {
-    using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "navbar-right" }))
+    if (Request.IsAuthenticated)
     {
-        @Html.AntiForgeryToken()
+        using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "navbar-right" }))
+        {
+            @Html.AntiForgeryToken()
 
-<ul class="navbar-nav navbar-right">
-    <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Hola @User.Identity.GetUserName() !
-        </a>
-        <ul class="dropdown-menu">
-            @Html.ActionLink("Editar Perfil", "Edit", "Manage", routeValues: null, htmlAttributes: new { title = "Editar", @class = "dropdown-item" })
-            @Html.ActionLink("Cambiar Contraseña", "ChangePassword", "Manage", routeValues: null, htmlAttributes: new { title = "Cambiar Contraseña", @class = "dropdown-item" })
-        </ul>
-    </li>
-    @*<li>
-            @Html.ActionLink("Hola " + User.Identity.GetUserName() + "!", "Index", "Manage", routeValues: null, htmlAttributes: new { title = "Manage", @class = "nav-link" })
-        </li>*@
-    <li><a class="nav-link" href="javascript:document.getElementById('logoutForm').submit()">Cerrar sesión</a></li>
-</ul>
+            <ul class="navbar-nav navbar-right">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Hola @User.Identity.GetUserName() !
+                    </a>
+                    <ul class="dropdown-menu">
+                        @Html.ActionLink("Editar Perfil", "Edit", "Manage", routeValues: null, htmlAttributes: new { title = "Editar", @class = "dropdown-item" })
+                        @Html.ActionLink("Cambiar Contraseña", "ChangePassword", "Manage", routeValues: null, htmlAttributes: new { title = "Cambiar Contraseña", @class = "dropdown-item" })
+                        @if (Session["Rol"].ToString() != "ADMIN")
+                        {
+                            <li>
+                                <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#LockoutModal">Deshabilitar Usuario</a>
+                            </li>
+                        }
+                    </ul>
+                </li>
+                <li><a class="nav-link" href="/Account/LogOff">Cerrar sesión</a></li>
+            </ul>
+            if (Session["Rol"].ToString() != "ADMIN")
+            {
+                <div class="modal fade" id="LockoutModal" tabindex="-1" aria-labelledby="LockoutModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="LockoutModalLabel">Confirmación</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                Seguro que quiere deshabilitar el usuario?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cacelar</button>
+                                <a type="button" class="btn btn-danger" href="/Account/Lockout">Deshabilitar</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
     }
 }
 else
