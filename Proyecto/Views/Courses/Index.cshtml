@@ -1,0 +1,52 @@
+﻿@model IEnumerable<Proyecto.Models.Course>
+@{
+    ViewBag.Title = "Courses List";
+}
+
+<main>
+    <div class="container" style="margin-top: 50px;">
+        <div class="row">
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Lista de Cursos</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead class="bg-primary text-white">
+                                <tr>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.Name)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.Credits)
+                                    </th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Name)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Credits)
+                                        </td>
+                                        <td>
+                                            <a href="/Courses/Edit/@item.CourseId" class="btn btn-success">Editar</a> |
+                                            @*<a href="/Schedules/Create/@item.CourseId" class="btn btn-primary">Agregar horario</a> |
+                                            <a href="/Schedules/List/@item.CourseId" class="btn btn-primary">Ver horarios</a>
+                                            <a href="/Courses/Delete/@item.CourseId" class="btn btn-danger">Eliminar</a>*@
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
