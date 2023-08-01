@@ -72,6 +72,20 @@ values(NEWID(),'ADMIN'),
 (NEWID(),'PROFESSOR'),
 (NEWID(),'STUDENT')
 
+Create trigger UserLockout
+on AspNetUsers
+after insert
+as
+Begin
+	DECLARE
+	@UserID nvarchar(128)
+	set nocount on;
+	select @UserID=inserted.[Id] FROM INSERTED
+	Update AspNetUsers
+	set LockoutEnabled=0
+	where Id=@UserID
+end;
+
 
 /*SELECTS*/
 /*select * from AspNetUsers;

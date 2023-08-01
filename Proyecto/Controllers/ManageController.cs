@@ -82,18 +82,21 @@ namespace Proyecto.Controllers
         // GET: /Manage/Edit
         public ActionResult Edit()
         {
-            var id= User.Identity.GetUserId().ToString();
-            var user = db.AspUser.SingleOrDefault(e => e.Id == id);
-            var userData = db.UserData.SingleOrDefault(e => e.idUser == id);
-            var model = new EditViewModel
+            var user = UserManager.FindById(User.Identity.GetUserId());
+            if(!user.LockoutEnabled)
             {
-                UserId = user.Id,
-                Name = userData.Name,
-                LastName = userData.LastName,
-                Phone = user.PhoneNumber,
-                Email = user.Email
-            };
-            return View(model);
+                var userData = db.UserData.SingleOrDefault(e => e.idUser == user.Id);
+                var model = new EditViewModel
+                {
+                    UserId = user.Id,
+                    Name = userData.Name,
+                    LastName = userData.LastName,
+                    Phone = user.PhoneNumber,
+                    Email = user.Email
+                };
+                return View(model);
+            }
+            return RedirectToAction("Index", "Home");
         }
 
         //
@@ -117,20 +120,19 @@ namespace Proyecto.Controllers
                     userData.LastName = model.LastName;
                     var user2 = db.AspUser.SingleOrDefault(e => e.Id == model.UserId);
                     user2.PhoneNumber = model.Phone;
-                    user2.Email = model.Email;
+                    user2.Email=model.Email;
                     user2.UserName = model.Email;
                     db.Entry(user2).State = EntityState.Modified;
                     db.Entry(userData).State = EntityState.Modified;
                     db.SaveChanges();
                     message = "Usuario editado";
                     edited = true;
-                    var AuthenticationManager = HttpContext.GetOwinContext().Authentication;
-                    AuthenticationManager.SignOut();
+                    AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                 }
                 ViewData["Message"] = message;
                 if (edited)
                 {
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index","Home");
                 }
                 else
                 {
@@ -282,6 +284,14 @@ namespace Proyecto.Controllers
         // GET: /Manage/ChangePassword
         public ActionResult ChangePassword()
         {
+            if (Request.IsAuthenticated)
+            {
+                var user = UserManager.FindById(User.Identity.GetUserId());
+                if (user.LockoutEnabled)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+            }
             return View();
         }
 
@@ -301,9 +311,10 @@ namespace Proyecto.Controllers
                 var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
                 if (user != null)
                 {
+                    AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                     await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
                 }
-                return RedirectToAction("Index", new { Message = ManageMessageId.ChangePasswordSuccess });
+                return RedirectToAction("Index","Home", new { Message = ManageMessageId.ChangePasswordSuccess });
             }
             AddErrors(result);
             return View(model);
