@@ -15,6 +15,17 @@ namespace Proyecto.Models
         public string Name { get; set; }
         [Display(Name = "Créditos")]
         public int Credits { get; set; }
-        public ICollection<Schedule> Schedules { get; set; }
+        //public ICollection<Schedule> Schedules { get; set; }
+    }
+
+    public class CourseRegisterViewModel
+    {
+        [Required]
+        [Display(Name ="Nombre")]
+        public string Name { get; set; }
+
+        [Required]
+        [Display(Name ="Créditos")]
+        public int Credits { get; set;}
     }
 }
