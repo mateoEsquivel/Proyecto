@@ -11,10 +11,13 @@ namespace Proyecto.Models
     {
         [Key]
         public int CourseId { get; set; }
+
         [Display(Name = "Nombre")]
         public string Name { get; set; }
+
         [Display(Name = "Créditos")]
         public int Credits { get; set; }
+
         //public ICollection<Schedule> Schedules { get; set; }
     }
 

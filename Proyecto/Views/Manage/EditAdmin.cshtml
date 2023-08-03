@@ -5,7 +5,7 @@
 
 <main>
     <div style="margin-top: 50px;">
-        @using (Html.BeginForm("EditResult", "Account", FormMethod.Post, new { role = "form" }))
+        @using (Html.BeginForm("EditAdmin", "Manage", FormMethod.Post, new { role = "form" }))
         {
             @Html.AntiForgeryToken()
             <div id="details">
@@ -49,54 +49,18 @@
                                 <br />
                                 @Html.EditorFor(m => m.Email, new { @class = "form-control", @type = "email" })
                             </div>
-                            @if (Model.RoleId != "ADMIN")
+                            @if (Model.RoleId == "STUDENT")
                             {
-                                if (Model.RoleId == "STUDENT")
-                                {
+                                <br />
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.RoleId, new { @class = "form-label" })
                                     <br />
-                                    <div class="form-group">
-                                        @Html.LabelFor(m => m.RoleId, new { @class = "form-label" })
-                                        <br />
-                                        <select class="form_select" id="RoleId" name="RoleId">
-                                            <option selected value="STUDENT">Estudiante</option>
-                                        </select>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <br />
-                                    <div class="form-group">
-                                        @Html.LabelFor(m => m.RoleId, new { @class = "form-label" })
-                                        <br />
-                                        <select class="form_select" id="RoleId" name="RoleId">
-                                            <option selected value="PROFESSOR">Profesor</option>
-                                        </select>
-                                    </div>
-                                }
-                                if (Model.Lockout)
-                                {
-                                    <br />
-                                    <div class="form-group">
-                                        @Html.LabelFor(m => m.Lockout, new { @class = "form-label" })
-                                        <br />
-                                        <select class="form_select" id="Lockout" name="Lockout">
-                                            <option selected value="true">Desactivado</option>
-                                            <option value="false">Activo</option>
-                                        </select>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <br />
-                                    <div class="form-group">
-                                        @Html.LabelFor(m => m.Lockout, new { @class = "form-label" })
-                                        <br />
-                                        <select class="form_select" id="Lockout" name="Lockout">
-                                            <option selected value="false">Activo</option>
-                                            <option value="true">Desactivado</option>
-                                        </select>
-                                    </div>
-                                }
+                                    <select class="form_select" id="RoleId" name="RoleId">
+                                        <option selected value="STUDENT">Estudiante</option>
+                                        <option value="PROFESSOR">Profesor</option>
+                                        <option value="ADMIN">Administrador</option>
+                                    </select>
+                                </div>
                             }
                             else
                             {
@@ -105,7 +69,32 @@
                                     @Html.LabelFor(m => m.RoleId, new { @class = "form-label" })
                                     <br />
                                     <select class="form_select" id="RoleId" name="RoleId">
-                                        <option selected value="ADMIN">Administrador</option>
+                                        <option selected value="PROFESSOR">Profesor</option>
+                                        <option value="ADMIN">Administrador</option>
+                                    </select>
+                                </div>
+                            }
+                            @if (Model.Lockout)
+                            {
+                                <br />
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.Lockout, new { @class = "form-label" })
+                                    <br />
+                                    <select class="form_select" id="Lockout" name="Lockout">
+                                        <option selected value="true">Desactivado</option>
+                                        <option value="false">Activo</option>
+                                    </select>
+                                </div>
+                            }
+                            else
+                            {
+                                <br />
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.Lockout, new { @class = "form-label" })
+                                    <br />
+                                    <select class="form_select" id="Lockout" name="Lockout">
+                                        <option selected value="false">Activo</option>
+                                        <option value="true">Desactivado</option>
                                     </select>
                                 </div>
                             }

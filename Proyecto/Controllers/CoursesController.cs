@@ -54,6 +54,7 @@ namespace Proyecto.Controllers
             }
         }
 
+        [Authorize(Roles = "ADMIN")]
         // GET: Courses
         public ActionResult Index()
         {
@@ -61,23 +62,19 @@ namespace Proyecto.Controllers
             return View(courses);
         }
 
+        [Authorize(Roles = "ADMIN")]
         // GET: Create
         public ActionResult Create()
         {
-            var user = UserManager.FindById(User.Identity.GetUserId());
-            var aspUserRol = db.AspUserRole.SingleOrDefault(e => e.UserId == user.Id);
-            var Rol = db.AspRole.SingleOrDefault(e => e.Id == aspUserRol.RoleId);
-            if(Rol.Name=="ADMIN")
-            {
-                return View();
-            }
-            return RedirectToAction("Index", "Home");
+             return View();
         }
 
         // POST: Create
         [HttpPost]
+        [Authorize(Roles = "ADMIN")]
         public ActionResult Create(CourseRegisterViewModel model)
         {
+            bool registered = false;
             string message = null;
             if (ModelState.IsValid)
             {
@@ -93,42 +90,53 @@ namespace Proyecto.Controllers
                         Name = model.Name,
                         Credits= model.Credits
                     };
-                    db.Course.Add(course);
-                    db.SaveChanges();
-                    message = "Curso registrado";
+                    try
+                    {
+                        db.Course.Add(course);
+                        db.SaveChanges();
+                        message = "Curso registrado";
+                        registered = true;
+                    }
+                    catch
+                    {
+                        message = "Error al Registrar curso";
+                    }
+                    
                 }
             }
             ViewData["Message"] = message;
-            return View(model);
+            if (registered)
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                return View(model);
+            }
         }
 
         // GET: Edit
+        [Authorize(Roles = "ADMIN")]
         public ActionResult Edit(int? id)
         {
-            var user = UserManager.FindById(User.Identity.GetUserId());
-            var aspUserRol = db.AspUserRole.SingleOrDefault(e => e.UserId == user.Id);
-            var Rol = db.AspRole.SingleOrDefault(e => e.Id == aspUserRol.RoleId);
-            if (Rol.Name == "ADMIN")
+            if (id == null)
             {
-                if (id == null)
-                {
-                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-                }
-
-               var course = db.Course.SingleOrDefault(e=>e.CourseId == id);
-
-                if (course == null)
-                {
-                    return HttpNotFound();
-                }
-
-                return View(course);
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            return RedirectToAction("Index", "Home");
+
+            var course = db.Course.SingleOrDefault(e => e.CourseId == id);
+
+            if (course == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(course);
         }
 
         // GET: POST
         [HttpPost]
+        [Authorize(Roles = "ADMIN")]
         public ActionResult Edit(Course model)
         {
             bool edited = false;
@@ -151,10 +159,19 @@ namespace Proyecto.Controllers
                         var course = db.Course.SingleOrDefault(e => e.CourseId == model.CourseId);
                         course.Name = model.Name;
                         course.Credits = model.Credits;
-                        db.Entry(course).State = EntityState.Modified;
-                        db.SaveChanges();
-                        message = "Curso editado";
-                        edited = true;
+                        try
+                        {
+                            db.Entry(course).State = EntityState.Modified;
+                            db.SaveChanges();
+                            message = "Curso editado";
+                            edited = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            message = "Error al editar el curso";
+                            throw ex;
+                        }
+                        
                     }
                 }
                 ViewData["Message"] = message;

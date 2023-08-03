@@ -10,13 +10,18 @@ namespace Proyecto.Models
     {
         [Key]
         public int IdEnrollment { get; set; }
+
         [Display(Name = "IdEstudiante")]
         public int StudentId { get; set; }
-        public AspNetUser AspNetUsers { get; set; }
-        [Display(Name = "Precio")]
+
+        //public AspNetUser AspNetUsers { get; set; }
+
         public DateTime Date { get; set; }
+
         public decimal Total { get; set; }
-        public ICollection<EnrollmentDetail> EnrollmentDetails { get; set; }
-        public ICollection<Bill> Bills { get; set; }
+
+        //public ICollection<EnrollmentDetail> EnrollmentDetails { get; set; }
+
+        //public ICollection<Bill> Bills { get; set; }
     }
 }

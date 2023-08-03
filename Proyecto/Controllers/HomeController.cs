@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Security;
 
 namespace Proyecto.Controllers
 {
@@ -52,6 +53,23 @@ namespace Proyecto.Controllers
             }
         }
 
+        private List<string> List()
+        {
+            var user = UserManager.FindById(User.Identity.GetUserId());
+            var UserRoles = user.Roles.ToList();
+            var List = new List<string>();
+            var Rol = new AspNetRole();
+            foreach (var role in UserRoles)
+            {
+                Rol = db.AspRole.SingleOrDefault(e => e.Id == role.RoleId);
+                if (Rol != null)
+                {
+                    List.Add(Rol.Name);
+                }
+            }
+            return List;
+        }
+
         public ActionResult Index()
         {
             Session["Aux"] = null;
@@ -59,24 +77,28 @@ namespace Proyecto.Controllers
             if (Request.IsAuthenticated)
             {
                 var user = UserManager.FindById(User.Identity.GetUserId());
-                if(user!=null)
-                {
-                    if (user.LockoutEnabled)
-                    {
-                        AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-                    }
-                    else
-                    {
-                        var aspUserRol = db.AspUserRole.SingleOrDefault(e => e.UserId == user.Id);
-                        var rol = db.AspRole.SingleOrDefault(e => e.Id == aspUserRol.RoleId);
-                        Session["Rol"] = rol.Name;
-                        Session["Aux"] = true;
-                    }
-                }
-                else
+                if (user.LockoutEnabled)
                 {
                     AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                 }
+               else
+               {
+                    var Roles=List();
+                    if (Roles.Contains("ADMIN"))
+                    {
+                        Session["Rol"] = "ADMIN";
+                    }
+                    else
+                    {
+                        if(Roles.Contains("PROFESSOR"))
+                        {
+                            Session["Rol"] = "PROFESSOR";
+                        }
+                        Session["Rol"] = "STUDENT";
+                    }
+                    
+                    Session["Aux"] = true;
+               }
             }
             return View();
         }

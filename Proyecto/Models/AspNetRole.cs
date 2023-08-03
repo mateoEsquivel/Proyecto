@@ -11,6 +11,7 @@ namespace Proyecto.Models
     {
         [Key]
         public string Id { get; set; }
+
         [Display(Name = "Rol")]
         public string Name { get; set; }
         //public ICollection<AspNetUserRole> AspNetUserRoles { get; set; }
