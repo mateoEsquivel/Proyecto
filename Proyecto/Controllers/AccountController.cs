@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.UI.WebControls;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
@@ -83,6 +85,7 @@ namespace Proyecto.Controllers
                     if (user.LockoutEnabled)
                     {
                         ViewData["Message"] = "Usuario deshabilitado";
+                        AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                         return View(model);
                     }
                     return RedirectToLocal(returnUrl);
@@ -97,6 +100,23 @@ namespace Proyecto.Controllers
             }
         }
 
+        private List<string> List(string id)
+        {
+            var user = UserManager.FindById(id);
+            var UserRoles = user.Roles.ToList();
+            var List = new List<string>();
+            var Rol = new AspNetRole();
+            foreach (var role in UserRoles)
+            {
+                Rol = db.AspRole.SingleOrDefault(e => e.Id == role.RoleId);
+                if (Rol != null)
+                {
+                    List.Add(Rol.Name);
+                }
+            }
+            return List;
+        }
+
         //
         // GET: /Account/Register
         [AllowAnonymous]
@@ -105,23 +125,19 @@ namespace Proyecto.Controllers
             Session["Rol"] = null;
             if (User.Identity.IsAuthenticated)
             {
-                var user = UserManager.FindById(User.Identity.GetUserId());
-                if (user.LockoutEnabled)
+                var Roles = List(User.Identity.GetUserId());
+                if (Roles.Contains("ADMIN"))
                 {
+                    Session["Rol"] = "ADMIN";
                     return View();
                 }
                 else
                 {
-                    if (user != null)
+                    if (Roles.Contains("PROFESSOR"))
                     {
-                        var aspUserRol = db.AspUserRole.SingleOrDefault(e => e.UserId == user.Id);
-                        var Rol = db.AspRole.SingleOrDefault(e => e.Id == aspUserRol.RoleId);
-                        if (Rol.Name == "ADMIN")
-                        {
-                            Session["Rol"] = Rol.Name;
-                            return View();
-                        }
+                        Session["Rol"] = "PROFESSOR";
                     }
+                    Session["Rol"] = "STUDENT";
                 }
                 return RedirectToAction("Index", "Home");
             }
@@ -137,19 +153,11 @@ namespace Proyecto.Controllers
         {
             bool registered = false;
             string message = null;
-            var aspUser = new AspNetUser();
-            if (Request.IsAuthenticated)
-            {
-                var id=User.Identity.GetUserId();
-                aspUser = new AspNetUser();
-                aspUser = db.AspUser.SingleOrDefault(e => e.Id == id);
-            }
             if (ModelState.IsValid)
             {
                 var exist = UserManager.FindByEmail(model.Email);
                 if (exist != null)
                 {
-                    registered = false;
                     message = "Usuario ya esta registrado";
                 }
                 else
@@ -179,19 +187,20 @@ namespace Proyecto.Controllers
                             UserId = user.Id,
                             RoleId = model.RoleId
                         };
-                        db.UserData.Add(userData);
-                        db.AspUserRole.Add(userRol);
-                        db.SaveChanges();
-                        message = "Usuario registrado";
-                        registered = true;
-                        if (aspUser.Id != null)
+                        try
                         {
-                            if (aspUser.LockoutEnabled)
-                            {
-                                await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-                            }
+                            db.UserData.Add(userData);
+                            db.AspUserRole.Add(userRol);
+                            db.SaveChanges();
+                            message = "Usuario registrado";
+                            registered = true;
                         }
-                        else
+                        catch(Exception ex)
+                        {
+                            message = "Error al Registrar :"+ex;
+                            throw;
+                        }
+                        if(!Request.IsAuthenticated)
                         {
                             await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
                         }
@@ -219,194 +228,22 @@ namespace Proyecto.Controllers
         {
             var id = User.Identity.GetUserId();
             var user = db.AspUser.SingleOrDefault(e => e.Id == id);
-            if (!user.LockoutEnabled)
+            var Roles = List(user.Id);
+            if (!Roles.Contains("ADMIN"))
             {
-                var aspUserRol = db.AspUserRole.SingleOrDefault(e => e.UserId == user.Id);
-                var Rol = db.AspRole.SingleOrDefault(e => e.Id == aspUserRol.RoleId);
-                if (Rol.Name != "ADMIN")
+                user.LockoutEnabled = true;
+                try
                 {
-                    user.LockoutEnabled = true;
                     db.Entry(user).State = EntityState.Modified;
                     db.SaveChanges();
                 }
+                catch(Exception ex)
+                {
+                    throw;
+                }
+                
             }
             return RedirectToAction("Index", "Home");
-        }
-
-        [Authorize]
-        [HttpPost]
-        public ActionResult EditAdmin(string email)
-        {
-            var user = UserManager.FindById(User.Identity.GetUserId());
-            var aspUserRol = db.AspUserRole.SingleOrDefault(e => e.UserId == user.Id);
-            var Rol = db.AspRole.SingleOrDefault(e => e.Id == aspUserRol.RoleId);
-            if (Rol.Name == "ADMIN")
-            {
-                if (email != null)
-                {
-                    var exist = UserManager.FindByEmail(email);
-                    if (email == user.Email)
-                    {
-                        return RedirectToAction("Edit", "Manage");
-                    }
-                    if (exist == null)
-                    {
-                        return HttpNotFound();
-                    }
-                    else
-                    {
-                        var userData = db.UserData.SingleOrDefault(e => e.idUser == exist.Id);
-                        var aspUserRol2 = db.AspUserRole.SingleOrDefault(e => e.UserId == exist.Id);
-                        var Rol2 = db.AspRole.SingleOrDefault(e => e.Id == aspUserRol2.RoleId);
-                        EditViewModel model = new EditViewModel
-                        {
-                            UserId=exist.Id,
-                            Name = userData.Name,
-                            LastName= userData.LastName,
-                            Phone=exist.PhoneNumber,
-                            Email=exist.Email,
-                            RoleId=Rol2.Name,
-                            Lockout=exist.LockoutEnabled
-                        };
-                        return View(model);
-                    }
-                }
-            }
-            return RedirectToAction("Index", "Home");
-        }
-
-        [Authorize]
-        [HttpPost]
-        public ActionResult EditResult(EditViewModel model)
-        {
-            bool edited = false;
-            string message = null;
-            var user = UserManager.FindById(User.Identity.GetUserId());
-            var aspUserRol = db.AspUserRole.SingleOrDefault(e => e.UserId == user.Id);
-            var Rol = db.AspRole.SingleOrDefault(e => e.Id == aspUserRol.RoleId);
-            if (Rol.Name == "ADMIN")
-            {
-                if (ModelState.IsValid)
-                {
-                    var user2 = db.AspUser.SingleOrDefault(e => e.Email == model.Email && e.Id != model.UserId);
-                    if (user2 != null)
-                    {
-                        message = "Correo pertenece a otro usuario";
-                    }
-                    else
-                    {
-                        var userData = db.UserData.SingleOrDefault(e => e.idUser == model.UserId);
-                        userData.Name = model.Name;
-                        userData.LastName = model.LastName;
-                        var user3 = db.AspUser.SingleOrDefault(e => e.Id == model.UserId);
-                        user3.PhoneNumber = model.Phone;
-                        user3.Email = model.Email;
-                        user3.UserName = model.Email;
-                        user3.LockoutEnabled = model.Lockout;
-                        db.Entry(user3).State = EntityState.Modified;
-                        db.Entry(userData).State = EntityState.Modified;
-                        db.SaveChanges();
-                        message = "Usuario editado";
-                        edited = true;
-                    }
-                    ViewData["Message"] = message;
-                    if (edited)
-                    {
-                        return RedirectToAction("Index", "Home");
-                    }
-                    else
-                    {
-                        return View(model);
-                    }
-                }
-            }
-            return RedirectToAction("EditAdmin", "Account");
-        }
-
-        //
-        // GET: /Account/ForgotPassword
-        [AllowAnonymous]
-        public ActionResult ForgotPassword()
-        {
-            return View();
-        }
-
-        //
-        // POST: /Account/ForgotPassword
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var user = await UserManager.FindByNameAsync(model.Email);
-                if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)))
-                {
-                    // Don't reveal that the user does not exist or is not confirmed
-                    return View("ForgotPasswordConfirmation");
-                }
-
-                // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
-                // Send an email with this link
-                // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
-                // return RedirectToAction("ForgotPasswordConfirmation", "Account");
-            }
-
-            // If we got this far, something failed, redisplay form
-            return View(model);
-        }
-
-        //
-        // GET: /Account/ForgotPasswordConfirmation
-        [AllowAnonymous]
-        public ActionResult ForgotPasswordConfirmation()
-        {
-            return View();
-        }
-
-        //
-        // GET: /Account/ResetPassword
-        [AllowAnonymous]
-        public ActionResult ResetPassword(string code)
-        {
-            return code == null ? View("Error") : View();
-        }
-
-        //
-        // POST: /Account/ResetPassword
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> ResetPassword(ResetPasswordViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-            var user = await UserManager.FindByNameAsync(model.Email);
-            if (user == null)
-            {
-                // Don't reveal that the user does not exist
-                return RedirectToAction("ResetPasswordConfirmation", "Account");
-            }
-            var result = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password);
-            if (result.Succeeded)
-            {
-                return RedirectToAction("ResetPasswordConfirmation", "Account");
-            }
-            AddErrors(result);
-            return View();
-        }
-
-        //
-        // GET: /Account/ResetPasswordConfirmation
-        [AllowAnonymous]
-        public ActionResult ResetPasswordConfirmation()
-        {
-            return View();
         }
 
         //
@@ -416,14 +253,6 @@ namespace Proyecto.Controllers
         {
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
             return RedirectToAction("Index", "Home");
-        }
-
-        //
-        // GET: /Account/ExternalLoginFailure
-        [AllowAnonymous]
-        public ActionResult ExternalLoginFailure()
-        {
-            return View();
         }
 
         protected override void Dispose(bool disposing)

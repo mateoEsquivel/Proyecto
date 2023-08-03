@@ -12,10 +12,13 @@ namespace Proyecto.Models
         [Key]
         [Column(Order = 0)]
         public string UserId { get; set; }
+
        // public AspNetUser AspNetUsers { get; set; }
+
         [Key]
         [Column(Order = 1)]
         public string RoleId { get; set; }
+
         //public AspNetRole AspNetRoles { get; set; }
     }
 }

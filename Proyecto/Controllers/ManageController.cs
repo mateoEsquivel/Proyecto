@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -54,49 +55,20 @@ namespace Proyecto.Controllers
         }
 
         //
-        // GET: /Manage/Index
-        public async Task<ActionResult> Index(ManageMessageId? message)
-        {
-            ViewBag.StatusMessage =
-                message == ManageMessageId.ChangePasswordSuccess ? "Your password has been changed."
-                : message == ManageMessageId.SetPasswordSuccess ? "Your password has been set."
-                : message == ManageMessageId.SetTwoFactorSuccess ? "Your two-factor authentication provider has been set."
-                : message == ManageMessageId.Error ? "An error has occurred."
-                : message == ManageMessageId.AddPhoneSuccess ? "Your phone number was added."
-                : message == ManageMessageId.RemovePhoneSuccess ? "Your phone number was removed."
-                : "";
-
-            var userId = User.Identity.GetUserId();
-            var model = new IndexViewModel
-            {
-                HasPassword = HasPassword(),
-                PhoneNumber = await UserManager.GetPhoneNumberAsync(userId),
-                TwoFactor = await UserManager.GetTwoFactorEnabledAsync(userId),
-                Logins = await UserManager.GetLoginsAsync(userId),
-                BrowserRemembered = await AuthenticationManager.TwoFactorBrowserRememberedAsync(userId)
-            };
-            return View(model);
-        }
-
-        //
         // GET: /Manage/Edit
         public ActionResult Edit()
         {
             var user = UserManager.FindById(User.Identity.GetUserId());
-            if(!user.LockoutEnabled)
+            var userData = db.UserData.SingleOrDefault(e => e.idUser == user.Id);
+            var model = new EditViewModel
             {
-                var userData = db.UserData.SingleOrDefault(e => e.idUser == user.Id);
-                var model = new EditViewModel
-                {
-                    UserId = user.Id,
-                    Name = userData.Name,
-                    LastName = userData.LastName,
-                    Phone = user.PhoneNumber,
-                    Email = user.Email
-                };
-                return View(model);
-            }
-            return RedirectToAction("Index", "Home");
+                UserId = user.Id,
+                Name = userData.Name,
+                LastName = userData.LastName,
+                Phone = user.PhoneNumber,
+                Email = user.Email
+            };
+            return View(model);
         }
 
         //
@@ -108,8 +80,8 @@ namespace Proyecto.Controllers
             string message = null;
             if (ModelState.IsValid)
             {
-                var user = db.AspUser.SingleOrDefault(e => e.Email == model.Email && e.Id != model.UserId);
-                if (user != null)
+                var exist = db.AspUser.SingleOrDefault(e => e.Email == model.Email && e.Id != model.UserId);
+                if (exist != null)
                 {
                     message = "Correo pertenece a otro usuario";
                 }
@@ -118,16 +90,27 @@ namespace Proyecto.Controllers
                     var userData = db.UserData.SingleOrDefault(e => e.idUser == model.UserId);
                     userData.Name = model.Name;
                     userData.LastName = model.LastName;
-                    var user2 = db.AspUser.SingleOrDefault(e => e.Id == model.UserId);
-                    user2.PhoneNumber = model.Phone;
-                    user2.Email=model.Email;
-                    user2.UserName = model.Email;
-                    db.Entry(user2).State = EntityState.Modified;
-                    db.Entry(userData).State = EntityState.Modified;
-                    db.SaveChanges();
-                    message = "Usuario editado";
-                    edited = true;
-                    AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                    var user = db.AspUser.SingleOrDefault(e => e.Id == model.UserId);
+                    user.PhoneNumber = model.Phone;
+                    user.Email=model.Email;
+                    user.UserName = model.Email;
+                    try
+                    {
+                        db.Entry(user).State = EntityState.Modified;
+                        db.Entry(userData).State = EntityState.Modified;
+                        db.SaveChanges();
+                        message = "Usuario editado";
+                        edited = true;
+                    }
+                    catch
+                    {
+                        message = "Error al editar";
+                        throw;
+                    }
+                    if (User.Identity.GetUserName() != model.Email)
+                    {
+                        AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                    }
                 }
                 ViewData["Message"] = message;
                 if (edited)
@@ -143,155 +126,9 @@ namespace Proyecto.Controllers
         }
 
         //
-        // POST: /Manage/RemoveLogin
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> RemoveLogin(string loginProvider, string providerKey)
-        {
-            ManageMessageId? message;
-            var result = await UserManager.RemoveLoginAsync(User.Identity.GetUserId(), new UserLoginInfo(loginProvider, providerKey));
-            if (result.Succeeded)
-            {
-                var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
-                if (user != null)
-                {
-                    await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-                }
-                message = ManageMessageId.RemoveLoginSuccess;
-            }
-            else
-            {
-                message = ManageMessageId.Error;
-            }
-            return RedirectToAction("ManageLogins", new { Message = message });
-        }
-
-        //
-        // GET: /Manage/AddPhoneNumber
-        public ActionResult AddPhoneNumber()
-        {
-            return View();
-        }
-
-        //
-        // POST: /Manage/AddPhoneNumber
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> AddPhoneNumber(AddPhoneNumberViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-            // Generate the token and send it
-            var code = await UserManager.GenerateChangePhoneNumberTokenAsync(User.Identity.GetUserId(), model.Number);
-            if (UserManager.SmsService != null)
-            {
-                var message = new IdentityMessage
-                {
-                    Destination = model.Number,
-                    Body = "Your security code is: " + code
-                };
-                await UserManager.SmsService.SendAsync(message);
-            }
-            return RedirectToAction("VerifyPhoneNumber", new { PhoneNumber = model.Number });
-        }
-
-        //
-        // POST: /Manage/EnableTwoFactorAuthentication
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> EnableTwoFactorAuthentication()
-        {
-            await UserManager.SetTwoFactorEnabledAsync(User.Identity.GetUserId(), true);
-            var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
-            if (user != null)
-            {
-                await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-            }
-            return RedirectToAction("Index", "Manage");
-        }
-
-        //
-        // POST: /Manage/DisableTwoFactorAuthentication
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> DisableTwoFactorAuthentication()
-        {
-            await UserManager.SetTwoFactorEnabledAsync(User.Identity.GetUserId(), false);
-            var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
-            if (user != null)
-            {
-                await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-            }
-            return RedirectToAction("Index", "Manage");
-        }
-
-        //
-        // GET: /Manage/VerifyPhoneNumber
-        public async Task<ActionResult> VerifyPhoneNumber(string phoneNumber)
-        {
-            var code = await UserManager.GenerateChangePhoneNumberTokenAsync(User.Identity.GetUserId(), phoneNumber);
-            // Send an SMS through the SMS provider to verify the phone number
-            return phoneNumber == null ? View("Error") : View(new VerifyPhoneNumberViewModel { PhoneNumber = phoneNumber });
-        }
-
-        //
-        // POST: /Manage/VerifyPhoneNumber
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> VerifyPhoneNumber(VerifyPhoneNumberViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-            var result = await UserManager.ChangePhoneNumberAsync(User.Identity.GetUserId(), model.PhoneNumber, model.Code);
-            if (result.Succeeded)
-            {
-                var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
-                if (user != null)
-                {
-                    await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-                }
-                return RedirectToAction("Index", new { Message = ManageMessageId.AddPhoneSuccess });
-            }
-            // If we got this far, something failed, redisplay form
-            ModelState.AddModelError("", "Failed to verify phone");
-            return View(model);
-        }
-
-        //
-        // POST: /Manage/RemovePhoneNumber
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> RemovePhoneNumber()
-        {
-            var result = await UserManager.SetPhoneNumberAsync(User.Identity.GetUserId(), null);
-            if (!result.Succeeded)
-            {
-                return RedirectToAction("Index", new { Message = ManageMessageId.Error });
-            }
-            var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
-            if (user != null)
-            {
-                await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-            }
-            return RedirectToAction("Index", new { Message = ManageMessageId.RemovePhoneSuccess });
-        }
-
-        //
         // GET: /Manage/ChangePassword
         public ActionResult ChangePassword()
         {
-            if (Request.IsAuthenticated)
-            {
-                var user = UserManager.FindById(User.Identity.GetUserId());
-                if (user.LockoutEnabled)
-                {
-                    return RedirectToAction("Index", "Home");
-                }
-            }
             return View();
         }
 
@@ -312,90 +149,153 @@ namespace Proyecto.Controllers
                 if (user != null)
                 {
                     AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
-                    await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
                 }
-                return RedirectToAction("Index","Home", new { Message = ManageMessageId.ChangePasswordSuccess });
+                return RedirectToAction("Index","Home");
             }
             AddErrors(result);
             return View(model);
         }
 
-        //
-        // GET: /Manage/SetPassword
-        public ActionResult SetPassword()
+        private List<string> List(string id)
         {
-            return View();
+            var user = UserManager.FindById(id);
+            var UserRoles = user.Roles.ToList();
+            var List = new List<string>();
+            var Rol = new AspNetRole();
+            foreach (var role in UserRoles)
+            {
+                Rol = db.AspRole.SingleOrDefault(e => e.Id == role.RoleId);
+                if (Rol != null)
+                {
+                    List.Add(Rol.Name);
+                }
+            }
+            return List;
         }
 
         //
-        // POST: /Manage/SetPassword
+        // POST: /Manage/EditAdmin
+        [Authorize(Roles ="ADMIN")]
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> SetPassword(SetPasswordViewModel model)
+        public ActionResult EditUser(string email)
         {
             if (ModelState.IsValid)
             {
-                var result = await UserManager.AddPasswordAsync(User.Identity.GetUserId(), model.NewPassword);
-                if (result.Succeeded)
-                {
-                    var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
-                    if (user != null)
-                    {
-                        await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-                    }
-                    return RedirectToAction("Index", new { Message = ManageMessageId.SetPasswordSuccess });
-                }
-                AddErrors(result);
+                Session["email"] = email;
+                return RedirectToAction("EditAdmin");
             }
-
-            // If we got this far, something failed, redisplay form
-            return View(model);
+            return RedirectToAction("Index", "Home");
         }
 
         //
-        // GET: /Manage/ManageLogins
-        public async Task<ActionResult> ManageLogins(ManageMessageId? message)
+        // GET: /Manage/EditResult
+
+        [Authorize(Roles = "ADMIN")]
+        public ActionResult EditAdmin()
         {
-            ViewBag.StatusMessage =
-                message == ManageMessageId.RemoveLoginSuccess ? "The external login was removed."
-                : message == ManageMessageId.Error ? "An error has occurred."
-                : "";
-            var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
+            string email = Session["email"].ToString();
+            if(email == User.Identity.GetUserName())
+            {
+                return RedirectToAction("Edit");
+            }
+            var user = UserManager.FindByEmail(email);
             if (user == null)
             {
-                return View("Error");
+                return HttpNotFound();
             }
-            var userLogins = await UserManager.GetLoginsAsync(User.Identity.GetUserId());
-            var otherLogins = AuthenticationManager.GetExternalAuthenticationTypes().Where(auth => userLogins.All(ul => auth.AuthenticationType != ul.LoginProvider)).ToList();
-            ViewBag.ShowRemoveButton = user.PasswordHash != null || userLogins.Count > 1;
-            return View(new ManageLoginsViewModel
+            else
             {
-                CurrentLogins = userLogins,
-                OtherLogins = otherLogins
-            });
+                var userData = db.UserData.SingleOrDefault(e => e.idUser == user.Id);
+                var Roles = List(user.Id);
+                string role = "";
+                if (Roles.Contains("ADMIN"))
+                {
+                    return HttpNotFound();
+                }
+                else
+                {
+                    if (Roles.Contains("PROFESSOR"))
+                    {
+                        role = "PROFESSOR";
+                    }
+                    else
+                    {
+                        role = "STUDENT";
+                    }
+                }
+                EditViewModel model = new EditViewModel
+                {
+                    UserId = user.Id,
+                    Name = userData.Name,
+                    LastName = userData.LastName,
+                    Phone = user.PhoneNumber,
+                    Email = user.Email,
+                    RoleId = role,
+                    Lockout = user.LockoutEnabled
+                };
+                return View(model);
+            }
         }
 
-        //
-        // POST: /Manage/LinkLogin
+        [Authorize(Roles = "ADMIN")]
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult LinkLogin(string provider)
+        public ActionResult EditAdmin(EditViewModel model)
         {
-            // Request a redirect to the external login provider to link a login for the current user
-            return new AccountController.ChallengeResult(provider, Url.Action("LinkLoginCallback", "Manage"), User.Identity.GetUserId());
-        }
-
-        //
-        // GET: /Manage/LinkLoginCallback
-        public async Task<ActionResult> LinkLoginCallback()
-        {
-            var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync(XsrfKey, User.Identity.GetUserId());
-            if (loginInfo == null)
+            bool edited = false;
+            string message = null;
+            if (ModelState.IsValid)
             {
-                return RedirectToAction("ManageLogins", new { Message = ManageMessageId.Error });
+                var exist = db.AspUser.SingleOrDefault(e => e.Email == model.Email && e.Id != model.UserId);
+                if (exist != null)
+                {
+                    message = "Correo pertenece a otro usuario";
+                }
+                else
+                {
+                    var userData = db.UserData.SingleOrDefault(e => e.idUser == model.UserId);
+                    var user = db.AspUser.SingleOrDefault(e => e.Id == model.UserId);
+                    var Roles = List(user.Id);
+                    if(!Roles.Contains(model.RoleId))
+                    {
+                        var rol = db.AspRole.SingleOrDefault(e => e.Name == model.RoleId);
+                        var userRol = new AspNetUserRole
+                        {
+                            UserId = model.UserId,
+                            RoleId=rol.Id
+                        };
+                        try
+                        {
+                            db.AspUserRole.Add(userRol);
+                        }
+                        catch(Exception ex)
+                        {
+                            message = "Error al agregar rol";
+                            throw ex;
+                        }
+                    }
+                    userData.Name = model.Name;
+                    userData.LastName = model.LastName;
+                    user.PhoneNumber = model.Phone;
+                    user.Email = model.Email;
+                    user.UserName = model.Email;
+                    user.LockoutEnabled = model.Lockout;
+                    db.Entry(user).State = EntityState.Modified;
+                    db.Entry(userData).State = EntityState.Modified;
+                    db.SaveChanges();
+                    message = "Usuario editado";
+                    edited = true;
+                }
+                ViewData["Message"] = message;
+                if (edited)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    return View(model);
+                }
             }
-            var result = await UserManager.AddLoginAsync(User.Identity.GetUserId(), loginInfo.Login);
-            return result.Succeeded ? RedirectToAction("ManageLogins") : RedirectToAction("ManageLogins", new { Message = ManageMessageId.Error });
+            return View(model);
         }
 
         protected override void Dispose(bool disposing)
