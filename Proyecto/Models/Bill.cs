@@ -18,6 +18,6 @@ namespace Proyecto.Models
         [Display(Name = "Descuento")]
         public decimal Discount { get; set; }
 
-        public double Total { get; set; }
+        public decimal Total { get; set; }
     }
 }

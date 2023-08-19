@@ -12,7 +12,7 @@ namespace Proyecto.Models
         public int IdEnrollment { get; set; }
 
         [Display(Name = "IdEstudiante")]
-        public int StudentId { get; set; }
+        public string StudentId { get; set; }
 
         //public AspNetUser AspNetUsers { get; set; }
 

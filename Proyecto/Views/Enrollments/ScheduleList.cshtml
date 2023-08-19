@@ -1,0 +1,56 @@
+﻿@model IEnumerable<Proyecto.Models.Schedule>
+@{
+    ViewBag.Title = "Schedules Enrollment";
+}
+
+<main>
+    <div class="container" style="margin-top: 50px;">
+        <div class="row">
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Lista de horarios del curso: @Session["Course"].ToString()</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead class="bg-primary text-white">
+                                <tr>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.Day)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.StartTime)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EndTime)
+                                    </th>
+                                    <th>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Day)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.StartTime)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.EndTime)
+                                        </td>
+                                        <td>
+                                            <a href="/Enrollments/Enroll/@item.IdSchedule" class="btn btn-primary">Seleccionar</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

@@ -156,6 +156,7 @@ namespace Proyecto.Controllers
             return View(model);
         }
 
+        //List of User Roles
         private List<string> List(string id)
         {
             var user = UserManager.FindById(id);
@@ -174,7 +175,7 @@ namespace Proyecto.Controllers
         }
 
         //
-        // POST: /Manage/EditAdmin
+        // POST: /Manage/EditUser
         [Authorize(Roles ="ADMIN")]
         [HttpPost]
         public ActionResult EditUser(string email)
@@ -188,11 +189,11 @@ namespace Proyecto.Controllers
         }
 
         //
-        // GET: /Manage/EditResult
-
+        // GET: /Manage/EditAdmin
         [Authorize(Roles = "ADMIN")]
         public ActionResult EditAdmin()
         {
+            Session["schedules"] = null;
             string email = Session["email"].ToString();
             if(email == User.Identity.GetUserName())
             {
@@ -223,6 +224,12 @@ namespace Proyecto.Controllers
                         role = "STUDENT";
                     }
                 }
+                string query = "Select * from Schedules where ProfessorId='" + user.Id.ToString() + "'";
+                var schedules = db.Database.SqlQuery<Schedule>(query);
+                if (schedules.ToList().Count() != 0)
+                {
+                    Session["schedules"] = schedules.Count();
+                }
                 EditViewModel model = new EditViewModel
                 {
                     UserId = user.Id,
@@ -237,6 +244,8 @@ namespace Proyecto.Controllers
             }
         }
 
+        //
+        // POST: /Manage/EditAdmin
         [Authorize(Roles = "ADMIN")]
         [HttpPost]
         public ActionResult EditAdmin(EditViewModel model)
@@ -265,6 +274,8 @@ namespace Proyecto.Controllers
                         };
                         try
                         {
+                            string query = "Delete from AspNetUserRoles where UserId='" + userRol.UserId.ToString()+"'";
+                            db.Database.ExecuteSqlCommand(query);
                             db.AspUserRole.Add(userRol);
                         }
                         catch(Exception ex)

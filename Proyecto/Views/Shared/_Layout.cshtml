@@ -31,9 +31,7 @@
                             if (Session["Rol"].ToString() == "ADMIN")
                             {
                                 <li>
-                                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Usuarios
-                                    </a>
+                                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">Usuarios</a>
                                     <ul class="dropdown-menu">
                                         @Html.ActionLink("Crear Usuario", "Register", "Account", routeValues: null, htmlAttributes: new { title = "Crear Usuario", @class = "dropdown-item" })
                                         <li>
@@ -66,16 +64,28 @@
                                     </div>
                                 </li>
                                 <li>
-                                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                       Cursos
-                                    </a>
+                                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">Cursos</a>
                                     <ul class="dropdown-menu">
                                         @Html.ActionLink("Crear Curso", "Create", "Courses", routeValues: null, htmlAttributes: new { title = "Crear Curso", @class = "dropdown-item" })
                                         @Html.ActionLink("Lista de Cursos", "Index", "Courses", routeValues: null, htmlAttributes: new { title = "Lista de Cursos", @class = "dropdown-item" })
                                     </ul>
                                 </li>
                             }
+                            else if (Session["Rol"].ToString() == "STUDENT")
+                            {
+                                <li>
+                                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">Cursos</a>
+                                    <ul class="dropdown-menu">
+                                        @Html.ActionLink("Lista de Cursos", "Index", "Courses", routeValues: null, htmlAttributes: new { title = "Lista de Cursos", @class = "dropdown-item" })
+                                        @Html.ActionLink("Matricular Curso", "Index", "Enrollments", routeValues: null, htmlAttributes: new { title = "Matricular Curso", @class = "dropdown-item" })
+                                    </ul>
+                                </li>
+                            }
                         }
+                    }
+                    else
+                    {
+                        <li>@Html.ActionLink("Lista de Cursos", "Index", "Courses", new { area = "" }, new { @class = "nav-link" })</li>
                     }
                 </ul>
                 @Html.Partial("_LoginPartial")

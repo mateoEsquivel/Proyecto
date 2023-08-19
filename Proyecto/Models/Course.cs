@@ -18,17 +18,46 @@ namespace Proyecto.Models
         [Display(Name = "Créditos")]
         public int Credits { get; set; }
 
+        [Display(Name = "Precio")]
+        public decimal Price { get; set; }
+
         //public ICollection<Schedule> Schedules { get; set; }
     }
 
     public class CourseRegisterViewModel
     {
         [Required]
-        [Display(Name ="Nombre")]
+        [Display(Name = "Nombre")]
         public string Name { get; set; }
 
         [Required]
-        [Display(Name ="Créditos")]
+        [Display(Name = "Créditos")]
         public int Credits { get; set;}
+
+        [Required]
+        [Display(Name = "Precio")]
+        public decimal Price { get; set; }
+    }
+
+    public class CourseListViewModel
+    {
+        [Required]
+        public int CourseId { get; set; }
+
+        [Required]
+        [Display(Name = "Nombre")]
+        public string Name { get; set; }
+
+        [Required]
+        [Display(Name="Créditos")]
+        public int Credits { get; set;}
+
+        [Required]
+        [Display(Name = "Precio")]
+        public decimal Price { get; set; }
+
+        [Required]
+        [Display(Name = "Horarios")]
+        public int Schedules { get; set;}
     }
 }
