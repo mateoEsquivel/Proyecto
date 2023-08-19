@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Proyecto.Models.Course>
+﻿@model IEnumerable<Proyecto.Models.CourseListViewModel>
 @{
     ViewBag.Title = "Courses List";
 }
@@ -14,33 +14,98 @@
                     <div class="card-body">
                         <table class="table table-striped">
                             <thead class="bg-primary text-white">
-                                <tr>
-                                    <th>
-                                        @Html.DisplayNameFor(model => model.Name)
-                                    </th>
-                                    <th>
-                                        @Html.DisplayNameFor(model => model.Credits)
-                                    </th>
-                                    <th></th>
-                                </tr>
+                                @if (Session["Rol"].ToString() != "ADMIN")
+                                {
+                                    <tr>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.Name)
+                                        </th>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.Credits)
+                                        </th>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.Name)
+                                        </th>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.Credits)
+                                        </th>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.Price)
+                                        </th>
+                                        <th>
+                                            @Html.DisplayNameFor(model => model.Schedules)
+                                        </th>
+                                    </tr>
+                                }
                             </thead>
                             <tbody>
                                 @foreach (var item in Model)
                                 {
-                                    <tr>
-                                        <td>
-                                            @Html.DisplayFor(modelItem => item.Name)
-                                        </td>
-                                        <td>
-                                            @Html.DisplayFor(modelItem => item.Credits)
-                                        </td>
-                                        <td>
-                                            <a href="/Courses/Edit/@item.CourseId" class="btn btn-success">Editar</a> |
-                                            @*<a href="/Schedules/Create/@item.CourseId" class="btn btn-primary">Agregar horario</a> |
-                                            <a href="/Schedules/List/@item.CourseId" class="btn btn-primary">Ver horarios</a>
-                                            <a href="/Courses/Delete/@item.CourseId" class="btn btn-danger">Eliminar</a>*@
-                                        </td>
-                                    </tr>
+                                    if (Session["Rol"].ToString() != "ADMIN")
+                                    {
+                                        if (item.Schedules > 0)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @Html.DisplayFor(modelItem => item.Name)
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(modelItem => item.Credits)
+                                                </td>
+                                                <td>
+                                                    <a href="/Schedules/List/@item.CourseId" class="btn btn-primary">Ver horarios</a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.Name)
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.Credits)
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.Price)
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.Schedules)
+                                            </td>
+                                            <td>
+                                                <a href="/Schedules/Create/@item.CourseId" class="btn btn-primary">Agregar horario</a>
+                                                <a href="/Schedules/List/@item.CourseId" class="btn btn-primary">Ver horarios</a>
+                                                <a href="/Courses/Edit/@item.CourseId" class="btn btn-success">Editar</a>
+                                                @if (item.Schedules == 0)
+                                                {
+                                                    <a class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#DeleteModal">Eliminar</a>
+                                                    <div class="modal fade" id="DeleteModal" tabindex="-1" aria-labelledby="DeleteModalLabel" aria-hidden="true">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h1 class="modal-title fs-5" id="DeleteModalLabel">Confirmación</h1>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    Seguro que quiere eliminar el curso: @item.Name?
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cacelar</button>
+                                                                    <a type="button" class="btn btn-danger" href="/Courses/Delete/@item.CourseId">Eliminar</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
                                 }
                             </tbody>
                         </table>

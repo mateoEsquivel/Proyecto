@@ -53,6 +53,7 @@ namespace Proyecto.Controllers
             }
         }
 
+        //List of User Roles
         private List<string> List()
         {
             var user = UserManager.FindById(User.Identity.GetUserId());
@@ -70,6 +71,8 @@ namespace Proyecto.Controllers
             return List;
         }
 
+        //
+        // GET: /Home/Index
         public ActionResult Index()
         {
             Session["Aux"] = null;
@@ -103,6 +106,8 @@ namespace Proyecto.Controllers
             return View();
         }
 
+        //
+        // GET: /Home/About
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";
@@ -110,6 +115,8 @@ namespace Proyecto.Controllers
             return View();
         }
 
+        //
+        // GET: /Home/Contact
         public ActionResult Contact()
         {
             ViewBag.Message = "Your contact page.";

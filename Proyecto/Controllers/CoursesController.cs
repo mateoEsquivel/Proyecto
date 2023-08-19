@@ -8,10 +8,11 @@ using System.Web;
 using System.Web.Mvc;
 using System.Net;
 using System.Data.Entity;
+using Microsoft.SqlServer.Server;
+using System.Web.Configuration;
 
 namespace Proyecto.Controllers
 {
-    [Authorize]
     public class CoursesController : Controller
     {
 
@@ -54,22 +55,79 @@ namespace Proyecto.Controllers
             }
         }
 
-        [Authorize(Roles = "ADMIN")]
-        // GET: Courses
+        //List of User Roles
+        private List<string> List(string id)
+        {
+            var user = UserManager.FindById(id);
+            var UserRoles = user.Roles.ToList();
+            var List = new List<string>();
+            var Rol = new AspNetRole();
+            foreach (var role in UserRoles)
+            {
+                Rol = db.AspRole.SingleOrDefault(e => e.Id == role.RoleId);
+                if (Rol != null)
+                {
+                    List.Add(Rol.Name);
+                }
+            }
+            return List;
+        }
+
+        //
+        // GET: /Courses/Index
+        [AllowAnonymous]
         public ActionResult Index()
         {
-            var courses=db.Course.ToList();
+            if(User.Identity.IsAuthenticated)
+            {
+                var Roles = List(User.Identity.GetUserId());
+                if (Roles.Contains("ADMIN"))
+                {
+                    Session["Rol"] = "ADMIN";
+                }
+                else
+                {
+                    if (Roles.Contains("PROFESSOR"))
+                    {
+                        Session["Rol"] = "PROFESSOR";
+                    }
+                    Session["Rol"] = "STUDENT";
+                }
+            }
+            else
+            {
+                Session["Rol"] = "STUDENT";
+            }
+            var c=db.Course.ToList();
+            var courses = new List<CourseListViewModel>();
+            foreach(var course in c)
+            {
+                string query = "select * from Schedules where CourseId = " + course.CourseId;
+                var schedule = db.Database.SqlQuery<Schedule>(query);
+                var courseView = new CourseListViewModel
+                {
+                    CourseId = course.CourseId,
+                    Name = course.Name,
+                    Credits = course.Credits,
+                    Price = course.Price,
+                    Schedules=schedule.ToList().Count()
+                };
+                courses.Add(courseView);
+            }
             return View(courses);
         }
 
+
+        //
+        // GET: /Courses/Create
         [Authorize(Roles = "ADMIN")]
-        // GET: Create
         public ActionResult Create()
         {
              return View();
         }
 
-        // POST: Create
+        //
+        // POST: /Courses/Create
         [HttpPost]
         [Authorize(Roles = "ADMIN")]
         public ActionResult Create(CourseRegisterViewModel model)
@@ -88,7 +146,8 @@ namespace Proyecto.Controllers
                     var course = new Course
                     {
                         Name = model.Name,
-                        Credits= model.Credits
+                        Credits = model.Credits,
+                        Price = model.Price
                     };
                     try
                     {
@@ -115,7 +174,8 @@ namespace Proyecto.Controllers
             }
         }
 
-        // GET: Edit
+        //
+        // GET: /Courses/Edit
         [Authorize(Roles = "ADMIN")]
         public ActionResult Edit(int? id)
         {
@@ -134,7 +194,8 @@ namespace Proyecto.Controllers
             return View(course);
         }
 
-        // GET: POST
+        //
+        // POST: /Courses/Edit
         [HttpPost]
         [Authorize(Roles = "ADMIN")]
         public ActionResult Edit(Course model)
@@ -150,15 +211,20 @@ namespace Proyecto.Controllers
                 }
                 else
                 {
-                    if (model.Credits<=0)
+                    if (model.Credits<=0 || model.Credits>5)
                     {
-                        message = "Los creditos deben ser mayor a 0";
+                        message = "Los creditos deben estar entre 1 y 5";
+                    }
+                    else if(model.Price < 20000 || model.Price > 300000)
+                    {
+                        message = "El precio del curso debe estar entre 20000 y 300000";
                     }
                     else
                     {
                         var course = db.Course.SingleOrDefault(e => e.CourseId == model.CourseId);
                         course.Name = model.Name;
                         course.Credits = model.Credits;
+                        course.Price = model.Price;
                         try
                         {
                             db.Entry(course).State = EntityState.Modified;
@@ -185,6 +251,35 @@ namespace Proyecto.Controllers
                 }
             }
             return View(model);
+        }
+
+        //
+        // GET: /Courses/Delete
+        [Authorize(Roles = "ADMIN")]
+        public ActionResult Delete(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            var course = db.Course.SingleOrDefault(e => e.CourseId==id);
+
+            if(course==null)
+            {
+                return HttpNotFound();
+            }
+
+            try
+            {
+                db.Course.Remove(course);
+                db.SaveChanges();
+            }
+            catch
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            return RedirectToAction("Index");
         }
     }
 }

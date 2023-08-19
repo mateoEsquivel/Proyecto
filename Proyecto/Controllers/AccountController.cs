@@ -100,6 +100,7 @@ namespace Proyecto.Controllers
             }
         }
 
+        //List of User Roles
         private List<string> List(string id)
         {
             var user = UserManager.FindById(id);
@@ -248,7 +249,6 @@ namespace Proyecto.Controllers
 
         //
         // POST: /Account/LogOff
-        //[ValidateAntiForgeryToken]
         public ActionResult LogOff()
         {
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);

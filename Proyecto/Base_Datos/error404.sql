@@ -13,14 +13,15 @@ create Table Courses
 (CourseId int identity(1,1) not null,
 Name nvarchar(256),
 Credits int not null,
+Price decimal(10,2) not null,
 primary key(CourseId))
 
 create Table Schedules
 (IdSchedule int identity(1,1) not null,
 CourseId int not null,
 ProfessorId nvarchar(128) not null,
-Date date not null,
-StarTime time not null,
+Day nvarchar(256) not null,
+StartTime time not null,
 EndTime time not null,
 Students int not null,
 primary key(IdSchedule))
@@ -51,12 +52,10 @@ create Table EnrollmentDetails
 (IdEnrollment int not null,
 IdDetail int not null,
 IdSchedule int not null,
-Price decimal(10,2) not null,
 primary key(IdEnrollment,IdDetail))
 
-
 alter table EnrollmentDetails add foreign key (IdEnrollment) references Enrollments(IdEnrollment);
-alter table Schedules add foreign key (IdSchedule) references Schedules(IdSchedule);
+alter table EnrollmentDetails add foreign key (IdSchedule) references Schedules(IdSchedule);
 
 create Table Bills
 (IdBill int identity(1,1) not null,
@@ -86,6 +85,20 @@ Begin
 	where Id=@UserID
 end;
 
+Create trigger students
+on EnrollmentDetails
+after insert
+as
+Begin
+	DECLARE
+	@ID int
+	set nocount on;
+	select @ID=inserted.[IdSchedule] FROM INSERTED
+	Update Schedules
+	set Students=Students+1
+	where IdSchedule=@ID
+end;
+
 
 /*SELECTS*/
 /*select * from AspNetUsers;
@@ -96,7 +109,18 @@ where A.UserId=C.Id and A.RoleId=B.Id;
 
 select * from UserDatas; 
 
-select * from AspNetRoles;*/
+select * from AspNetRoles;
+
+select * from Courses;
+
+select * from Schedules;
+
+select * from Enrollments;
+
+select * from EnrollmentDetails;
+
+select * from Bills;
+*/
 
 
 /*CUIDADAO DELETES*/
@@ -104,4 +128,10 @@ select * from AspNetRoles;*/
 delete from AspNetRoles
 delete from AspNetUsers
 delete from userDatas*/
+
+
+ select Name from 
+ Courses A, Schedules B
+ Where A.CourseId=B.CourseId
+
 

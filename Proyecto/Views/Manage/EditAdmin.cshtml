@@ -70,6 +70,10 @@
                                     <br />
                                     <select class="form_select" id="RoleId" name="RoleId">
                                         <option selected value="PROFESSOR">Profesor</option>
+                                        @if (Session["schedules"] == null)
+                                        {
+                                            <option value="STUDENT">Estudiante</option>
+                                        }
                                         <option value="ADMIN">Administrador</option>
                                     </select>
                                 </div>

@@ -12,19 +12,19 @@ namespace Proyecto.Models
         public int IdSchedule { get; set; }
         [Display(Name = "IdCurso")]
         public int CourseId { get; set; }
-        public Course Courses { get; set; }
+        //public Course Courses { get; set; }
         [Display(Name = "IdProfesor")]
-        public int ProfessorId { get; set; }
-        public AspNetUser AspNetUsers { get; set; }
-        [Display(Name = "Fecha")]
-        public DateTime Date { get; set; }
+        public string ProfessorId { get; set; }
+        //public AspNetUser AspNetUsers { get; set; }
+        [Display(Name = "Día")]
+        public string Day { get; set; }
         [Display(Name = "Hora De Inicio")]
         public TimeSpan StartTime { get; set; }
         [Display(Name = "Hora De Finalización")]
         public TimeSpan EndTime { get; set; }
         [Display(Name = "Cupo")]
         public int Students { get; set; }
-        public ICollection<Score> Scores { get; set; }
-        public ICollection<EnrollmentDetail> EnrollmentDetails { get; set; }
+        //public ICollection<Score> Scores { get; set; }
+        //public ICollection<EnrollmentDetail> EnrollmentDetails { get; set; }
     }
 }
