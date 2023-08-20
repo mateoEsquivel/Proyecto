@@ -10,10 +10,15 @@ namespace Proyecto.Models
     {
         [Key]
         public int IdScore { get; set; }
+
         public int IdSchedule { get; set; }
-        public Schedule Schedules { get; set; }
+
+        //public Schedule Schedules { get; set; }
+
         public string StudentId { get; set; }
-        public AspNetUser AspNetUsers { get; set; }
+
+        //public AspNetUser AspNetUsers { get; set; }
+
         [Display(Name = "Nota")]
         public decimal StudentScore { get; set; }
 

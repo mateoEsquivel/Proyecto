@@ -77,6 +77,7 @@ namespace Proyecto.Controllers
         {
             Session["Aux"] = null;
             Session["Rol"] = null;
+            Session["detail"] = null;
             if (Request.IsAuthenticated)
             {
                 var user = UserManager.FindById(User.Identity.GetUserId());

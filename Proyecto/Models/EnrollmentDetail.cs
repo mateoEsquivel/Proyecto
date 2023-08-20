@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.EnterpriseServices.Internal;
 using System.Linq;
 using System.Web;
 
@@ -53,5 +54,34 @@ namespace Proyecto.Models
         [Required]
         [Display(Name = "Precio")]
         public decimal Price { get; set; }
+    }
+
+    public class DetailView
+    {
+        [Required]
+        public int IdScore { get; set; }
+
+        [Required]
+        public int IdEnrollment { get; set; }
+
+        [Required]
+        [Display(Name = "Curso")]
+        public string Course { get; set; }
+
+        [Required]
+        [Display(Name = "Créditos")]
+        public int Credits { get; set; }
+
+        [Required]
+        [Display(Name = "Profesor")]
+        public string Teacher { get; set; }
+
+        [Required]
+        [Display(Name = "Horario")]
+        public string Schedule { get; set; }
+
+        [Required]
+        [Display(Name = "Fecha de Matrícula")]
+        public DateTime Date { get; set; }
     }
 }
