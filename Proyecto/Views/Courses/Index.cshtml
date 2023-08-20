@@ -81,9 +81,9 @@
                                             <td>
                                                 <a href="/Schedules/Create/@item.CourseId" class="btn btn-primary">Agregar horario</a>
                                                 <a href="/Schedules/List/@item.CourseId" class="btn btn-primary">Ver horarios</a>
-                                                <a href="/Courses/Edit/@item.CourseId" class="btn btn-success">Editar</a>
                                                 @if (item.Schedules == 0)
                                                 {
+                                                    <a href="/Courses/Edit/@item.CourseId" class="btn btn-success">Editar</a>
                                                     <a class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#DeleteModal">Eliminar</a>
                                                     <div class="modal fade" id="DeleteModal" tabindex="-1" aria-labelledby="DeleteModalLabel" aria-hidden="true">
                                                         <div class="modal-dialog">

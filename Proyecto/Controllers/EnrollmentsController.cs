@@ -62,29 +62,28 @@ namespace Proyecto.Controllers
         public ActionResult Index()
         {
             var id=User.Identity.GetUserId().ToString();
-            var c = db.Course.ToList();
-            var aux = false;
-            var courses = new List<CourseListViewModel>();
-            foreach (var course in c)
+            var courses = db.Course.ToList();
+            string query = "Select * from Enrollments where StudentId='" + id + "'";
+            var enrollments = db.Database.SqlQuery<Enrollment>(query);
+            var coursesView = new List<CourseListViewModel>();
+            bool aux ;
+            foreach (var course in courses)
             {
-                string query = "Select * from Schedules where CourseId = " + course.CourseId;
-                var schedule = db.Database.SqlQuery<Schedule>(query);
-                if (schedule.ToList().Count() != 0)
+                aux = false;
+                query = "Select * from Schedules where CourseId = " + course.CourseId;
+                var schedules = db.Database.SqlQuery<Schedule>(query);
+                if (schedules.ToList().Count() != 0)
                 {
-                    query = "Select * from Enrollments where StudentId='" + id + "'";
-                    var enrollments = db.Database.SqlQuery<Enrollment>(query);
-                    foreach (var e in enrollments.ToList())
+                    foreach (var enrollment in enrollments.ToList())
                     {
-                        query = "Select * from EnrollmentDetails where IdEnrollment=" + e.IdEnrollment;
+                        query = "Select * from EnrollmentDetails where IdEnrollment=" + enrollment.IdEnrollment;
                         var details= db.Database.SqlQuery<EnrollmentDetail>(query);
-                        foreach (var d in details.ToList())
+                        foreach (var detail in details.ToList())
                         {
-                            foreach(var s in schedule.ToList())
+                            var schedule = db.Schedule.SingleOrDefault( e=> e.IdSchedule == detail.IdSchedule);
+                            if(course.CourseId==schedule.CourseId)
                             {
-                                if(s.IdSchedule==d.IdSchedule)
-                                {
-                                    aux=true;
-                                }    
+                                aux = true;
                             }
                         }
                     }
@@ -96,14 +95,14 @@ namespace Proyecto.Controllers
                             Name = course.Name,
                             Credits = course.Credits,
                             Price = course.Price,
-                            Schedules = schedule.ToList().Count()
+                            Schedules = schedules.ToList().Count()
                         };
-                        courses.Add(enroll);
+                        coursesView.Add(enroll);
                     }
                 }
             }
 
-            return View(courses);
+            return View(coursesView);
         }
 
         //
@@ -218,7 +217,7 @@ namespace Proyecto.Controllers
                 foreach(var s in enrollments)
                 {
                     var course = db.Course.SingleOrDefault(e => e.CourseId == s.CourseId);
-                    total = total + course.Price;
+                    total += course.Price;
                 }
                 var enrollment = new Enrollment
                 {
@@ -235,12 +234,14 @@ namespace Proyecto.Controllers
                 {
                     throw;
                 }
-                enrollment = db.Enrrollment.SingleOrDefault(e => e.StudentId == id);
+
+                string query = "Select * from Enrollments where StudentId='" + id + "' and Date='" + enrollment.Date + "' and Total=" + enrollment.Total;
+                var enrollment2 = db.Database.SqlQuery<Enrollment>(query).First();
                 foreach(var s2 in enrollments)
                 {
                     var detail = new EnrollmentDetail
                     {
-                        IdEnrollment = enrollment.IdEnrollment,
+                        IdEnrollment = enrollment2.IdEnrollment,
                         IdDetail = i,
                         IdSchedule = s2.IdSchedule
                     };
@@ -251,20 +252,23 @@ namespace Proyecto.Controllers
                 decimal discount = 0;
                 if(enrollments.Count() == 2)
                 {
-                    discount = total * (20 / 100);
+                    discount = total * 10;
+                    discount /= 100;
                 }
                 else if(enrollments.Count() == 3 || enrollments.Count() == 4)
                 {
-                    discount = total * (25 / 100);
+                    discount = total * 20;
+                    discount /= 100;
                 }
                 else if(enrollments.Count() >= 5)
                 {
-                    discount = total * (30 / 100);
+                    discount = total * 30;
+                    discount /= 100;
                 }
 
                 var bill = new Bill
                 {
-                    IdEnrollment = enrollment.IdEnrollment,
+                    IdEnrollment = enrollment2.IdEnrollment,
                     Discount = discount,
                     Total = total-discount
                 };
@@ -272,7 +276,34 @@ namespace Proyecto.Controllers
                 db.SaveChanges();
                 enrollments = new List<Schedule>();
                 Session["List"] = null;
-                return RedirectToAction("Index", "Home");
+                var student = db.UserData.SingleOrDefault(e => e.idUser == id);
+                var receipt = db.Bill.SingleOrDefault(e => e.IdEnrollment == enrollment2.IdEnrollment);
+                query= "Select * from EnrollmentDetails where IdEnrollment ="+enrollment2.IdEnrollment;
+                var details= db.Database.SqlQuery<EnrollmentDetail>(query);
+                var list = new List<BillDetails>();
+                foreach(var item in details.ToList())
+                {
+                    var schedule = db.Schedule.SingleOrDefault(e => e.IdSchedule == item.IdSchedule);
+                    var course = db.Course.SingleOrDefault(e => e.CourseId == schedule.CourseId);
+                    string name=course.Name+"("+schedule.Day+" "+schedule.StartTime+"-"+schedule.EndTime+")";
+                    var billDetail = new BillDetails
+                    {
+                        Name = name,
+                        Price = course.Price
+                    };
+                    list.Add(billDetail);
+                }
+                var billView = new BillViewModel
+                {
+                    Student = student.Name + " " + student.LastName,
+                    Email=User.Identity.GetUserName().ToString(),
+                    Date=enrollment2.Date,
+                    IdBill=receipt.IdBill,
+                    Details=list,
+                    Discount=receipt.Discount,
+                    Total=receipt.Total
+                };
+                return View(billView);
             }
             return HttpNotFound();
         }

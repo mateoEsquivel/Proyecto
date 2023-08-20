@@ -165,7 +165,9 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\BillsController.cs" />
     <Compile Include="Controllers\CoursesController.cs" />
+    <Compile Include="Controllers\EnrollmentDetailsController.cs" />
     <Compile Include="Controllers\EnrollmentsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
@@ -259,6 +261,10 @@
     <Content Include="Views\Enrollments\Index.cshtml" />
     <Content Include="Views\Enrollments\ScheduleList.cshtml" />
     <Content Include="Views\Enrollments\List.cshtml" />
+    <Content Include="Views\Enrollments\Create.cshtml" />
+    <Content Include="Views\EnrollmentDetails\Index.cshtml" />
+    <Content Include="Views\Bills\Details.cshtml" />
+    <Content Include="Views\EnrollmentDetails\Details.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

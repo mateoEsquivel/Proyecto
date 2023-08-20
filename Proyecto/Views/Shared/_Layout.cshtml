@@ -70,6 +70,33 @@
                                         @Html.ActionLink("Lista de Cursos", "Index", "Courses", routeValues: null, htmlAttributes: new { title = "Lista de Cursos", @class = "dropdown-item" })
                                     </ul>
                                 </li>
+                                <li>
+                                    <a class="nav-link" role="button" data-bs-toggle="modal" data-bs-target="#EnrollmentModal">Consultar Matrícula</a>
+                                    <div class="modal fade" id="EnrollmentModal" tabindex="-1" aria-labelledby="EnrollmenttModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            @using (Html.BeginForm("Details", "EnrollmentDetails", FormMethod.Post, new { role = "form" }))
+                                            {
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h1 class="modal-title fs-5" id="EnrollmentModalLabel">Consultar Matrículas</h1>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="form-group">
+                                                            <label for="email" class="form-label">Ingrese el correo del usuario :</label>
+                                                            <input type="email" class="form-control" name="email" id="email" required />
+                                                        </div>
+                                                        <br />
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                                            <button type="submit" class="btn btn-primary">Buscar</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </li>
                             }
                             else if (Session["Rol"].ToString() == "STUDENT")
                             {
@@ -78,6 +105,7 @@
                                     <ul class="dropdown-menu">
                                         @Html.ActionLink("Lista de Cursos", "Index", "Courses", routeValues: null, htmlAttributes: new { title = "Lista de Cursos", @class = "dropdown-item" })
                                         @Html.ActionLink("Matricular Curso", "Index", "Enrollments", routeValues: null, htmlAttributes: new { title = "Matricular Curso", @class = "dropdown-item" })
+                                        @Html.ActionLink("Mis cursos", "Index", "EnrollmentDetails", routeValues: null, htmlAttributes: new { title = "Mis Cursos", @class = "dropdown-item" })
                                     </ul>
                                 </li>
                             }

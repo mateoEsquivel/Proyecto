@@ -130,8 +130,3 @@ delete from AspNetUsers
 delete from userDatas*/
 
 
- select Name from 
- Courses A, Schedules B
- Where A.CourseId=B.CourseId
-
-
