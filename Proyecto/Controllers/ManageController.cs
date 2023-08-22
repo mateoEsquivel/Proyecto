@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
+using Proyecto.CustomFilters;
 using Proyecto.Models;
 
 namespace Proyecto.Controllers
@@ -19,6 +20,7 @@ namespace Proyecto.Controllers
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
         private Context db = new Context();
+        private LogAlerts log = new LogAlerts();
 
         public ManageController()
         {
@@ -99,16 +101,20 @@ namespace Proyecto.Controllers
                         db.Entry(user).State = EntityState.Modified;
                         db.Entry(userData).State = EntityState.Modified;
                         db.SaveChanges();
-                        message = "Usuario editado";
+                        message = DateTime.Now + "El usuario: "+user.Email+" fue editado";
+                        log.LogAlert(message);
                         edited = true;
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        message = "Error al editar";
-                        throw;
+                        message = DateTime.Now+" Error al editar: "+ex;
+                        log.LogError(message);
+                        throw ex;
                     }
                     if (User.Identity.GetUserName() != model.Email)
                     {
+                        message = DateTime.Now + " El usuario: " + User.Identity.GetUserName() + " cerro la sesión";
+                        log.LogAlert(message);
                         AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                     }
                 }
@@ -138,6 +144,7 @@ namespace Proyecto.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ChangePassword(ChangePasswordViewModel model)
         {
+            string message;
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -148,10 +155,16 @@ namespace Proyecto.Controllers
                 var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
                 if (user != null)
                 {
+                    message = DateTime.Now + " El usuario: " + User.Identity.GetUserName() + " cerro la sesión";
+                    log.LogAlert(message);
                     AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                 }
+                message = DateTime.Now + " El usuario: " + user.Email + " cambio su contraseña";
+                log.LogAlert(message);
                 return RedirectToAction("Index","Home");
             }
+            message = DateTime.Now + "Error al cambiar contraseña";
+            log.LogError(message);
             AddErrors(result);
             return View(model);
         }
@@ -193,15 +206,19 @@ namespace Proyecto.Controllers
         [Authorize(Roles = "ADMIN")]
         public ActionResult EditAdmin()
         {
+            string message;
             Session["schedules"] = null;
             string email = Session["email"].ToString();
-            if(email == User.Identity.GetUserName())
+            Session["email"] = null;
+            if (email == User.Identity.GetUserName())
             {
                 return RedirectToAction("Edit");
             }
             var user = UserManager.FindByEmail(email);
             if (user == null)
             {
+                message = DateTime.Now + " Correo: " + email + " no encontrado";
+                log.LogAlert(message);
                 return HttpNotFound();
             }
             else
@@ -211,6 +228,8 @@ namespace Proyecto.Controllers
                 string role = "";
                 if (Roles.Contains("ADMIN"))
                 {
+                    message = DateTime.Now + " Se trató de editar otro admin";
+                    log.LogAlert(message);
                     return HttpNotFound();
                 }
                 else
@@ -277,10 +296,12 @@ namespace Proyecto.Controllers
                             string query = "Delete from AspNetUserRoles where UserId='" + userRol.UserId.ToString()+"'";
                             db.Database.ExecuteSqlCommand(query);
                             db.AspUserRole.Add(userRol);
+                            db.SaveChanges();
                         }
                         catch(Exception ex)
                         {
-                            message = "Error al agregar rol";
+                            message = DateTime.Now + " Error al agregar el rol: " + ex;
+                            log.LogError(message);
                             throw ex;
                         }
                     }
@@ -293,7 +314,8 @@ namespace Proyecto.Controllers
                     db.Entry(user).State = EntityState.Modified;
                     db.Entry(userData).State = EntityState.Modified;
                     db.SaveChanges();
-                    message = "Usuario editado";
+                    message = DateTime.Now + " Usuario: " + user.Email + " editado";
+                    log.LogAlert(message);
                     edited = true;
                 }
                 ViewData["Message"] = message;

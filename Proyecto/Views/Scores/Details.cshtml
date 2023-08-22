@@ -1,0 +1,65 @@
+﻿@model  Proyecto.Models.ScoreViewModel
+@{
+    ViewBag.Title = "Students List";
+    int i = 1;
+}
+
+<main>
+    <div class="container" style="margin-top: 50px;">
+        <div class="row">
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Nota de @Model.Name, curso: @Model.Course</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead class="bg-primary text-white">
+                                <tr>
+                                    <th>
+                                        Rubro
+                                    </th>
+                                    <th>
+                                        Nota
+                                    </th>
+                                    <th>
+                                        Porcentaje
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Details.ToList())
+                                {
+                                    <tr>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Name)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Score)
+                                        </td>
+                                        <td>
+                                            @item.Percentaje%
+                                        </td>
+                                        @if (Session["Rol"].ToString() == "PROFESSOR")
+                                        {
+                                            <td>
+                                                <a href="/Scores/Edit/?idScore=@Model.ScoreId&idDetail=@item.IdDetail" class="btn btn-success">Editar</a>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td>
+                                        Nota Ponderada: @Model.Score
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

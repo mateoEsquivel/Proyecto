@@ -1,0 +1,70 @@
+﻿@model IEnumerable<Proyecto.Models.DetailView>
+@{
+    ViewBag.Title = "User Courses";
+}
+
+<main>
+    <div class="container" style="margin-top: 50px;">
+        <div class="row">
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Lista de Cursos Matriculados</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead class="bg-primary text-white">
+                                <tr>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.Course)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.Credits)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.Teacher)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.Schedule)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.Date)
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Course)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Credits)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Teacher)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Schedule)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Date)
+                                        </td>
+                                        <td>
+                                            <a href="/Scores/Details/@item.IdScore/" class="btn btn-primary">Ver Notas</a>
+                                        </td>
+                                        <td>
+                                            <a href="/Scores/Delete/@item.IdScore" class="btn btn-danger">Eliminar</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+

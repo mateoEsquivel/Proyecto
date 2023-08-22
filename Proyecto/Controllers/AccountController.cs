@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
@@ -11,6 +12,7 @@ using System.Web.UI.WebControls;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
+using Proyecto.CustomFilters;
 using Proyecto.Models;
 
 namespace Proyecto.Controllers
@@ -20,6 +22,8 @@ namespace Proyecto.Controllers
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
         private Context db = new Context();
+        private LogAlerts log = new LogAlerts();
+
 
         public AccountController()
         {
@@ -70,6 +74,7 @@ namespace Proyecto.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
         {
+            string message;
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -85,9 +90,13 @@ namespace Proyecto.Controllers
                     if (user.LockoutEnabled)
                     {
                         ViewData["Message"] = "Usuario deshabilitado";
+                        message = DateTime.Now + " El usuario: " + user.UserName + " trato de ingresar en una cuenta deshabilitada";
+                        log.LogAlert(message);
                         AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                         return View(model);
                     }
+                    message = DateTime.Now + " El usuario: " + user.UserName + " inició sesión";
+                    log.LogAlert(message);
                     return RedirectToLocal(returnUrl);
                 case SignInStatus.LockedOut:
                     return View("Lockout");
@@ -95,27 +104,11 @@ namespace Proyecto.Controllers
                     return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
                 case SignInStatus.Failure:
                 default:
+                    message = DateTime.Now + " Inicio de sesión fallido";
+                    log.LogAlert(message);
                     ViewData["Message"] = "Usuario no encontrado";
                     return View(model);
             }
-        }
-
-        //List of User Roles
-        private List<string> List(string id)
-        {
-            var user = UserManager.FindById(id);
-            var UserRoles = user.Roles.ToList();
-            var List = new List<string>();
-            var Rol = new AspNetRole();
-            foreach (var role in UserRoles)
-            {
-                Rol = db.AspRole.SingleOrDefault(e => e.Id == role.RoleId);
-                if (Rol != null)
-                {
-                    List.Add(Rol.Name);
-                }
-            }
-            return List;
         }
 
         //
@@ -123,25 +116,15 @@ namespace Proyecto.Controllers
         [AllowAnonymous]
         public ActionResult Register()
         {
-            Session["Rol"] = null;
-            if (User.Identity.IsAuthenticated)
+            if (Session["Rol"]!=null)
             {
-                var Roles = List(User.Identity.GetUserId());
-                if (Roles.Contains("ADMIN"))
+                if (Session["Rol"].ToString()=="ADMIN")
                 {
-                    Session["Rol"] = "ADMIN";
                     return View();
-                }
-                else
-                {
-                    if (Roles.Contains("PROFESSOR"))
-                    {
-                        Session["Rol"] = "PROFESSOR";
-                    }
-                    Session["Rol"] = "STUDENT";
                 }
                 return RedirectToAction("Index", "Home");
             }
+
             return View();
         }
 
@@ -193,20 +176,29 @@ namespace Proyecto.Controllers
                             db.UserData.Add(userData);
                             db.AspUserRole.Add(userRol);
                             db.SaveChanges();
-                            message = "Usuario registrado";
+                            message = DateTime.Now+" Se registró un nuevo usuario: " + user.Email;
+                            log.LogAlert(message);
                             registered = true;
                         }
                         catch(Exception ex)
                         {
-                            message = "Error al Registrar :"+ex;
-                            throw;
+                            message = DateTime.Now+" Error al registrar : " + ex;
+                            log.LogError(message);
+                            throw ex;
                         }
                         if(!Request.IsAuthenticated)
                         {
+                            message = DateTime.Now + " El usuario: " + user.UserName + " inició sesión";
+                            log.LogAlert(message);
                             await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
                         }
                     }
-                    AddErrors(result);
+                    else
+                    {
+                        message = DateTime.Now+" Error al registrar usuario";
+                        log.LogError(message);
+                        AddErrors(result);
+                    }
                 }
                 ViewData["Message"] = message;
                 if (registered)
@@ -218,32 +210,61 @@ namespace Proyecto.Controllers
                     return View(model);
                 }
             }
-            // Si llegamos a este punto, es que se ha producido un error y volvemos a mostrar el formulario
+           
             return View(model);
         }
 
         //
         // GET: /Account/Lockout
-        [Authorize]
+        [Authorize(Roles = "STUDENT,PROFESSOR")]
         public ActionResult Lockout()
         {
+            string message;
             var id = User.Identity.GetUserId();
             var user = db.AspUser.SingleOrDefault(e => e.Id == id);
-            var Roles = List(user.Id);
-            if (!Roles.Contains("ADMIN"))
+            if (Session["Rol"].ToString() == "PROFESSOR")
+            {
+                var query = "Select * from Schedules where ProfessorId='" + id + "'";
+                var schedules=db.Database.SqlQuery<Schedule>(query);
+                if(schedules.ToList().Count()!=0)
+                {
+                    message = DateTime.Now + " Se intento deshabilitar un profesor con cursos";
+                    log.LogError(message);
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                }
+                user.LockoutEnabled = true;
+                try
+                {
+                    db.Entry(user).State = EntityState.Modified;
+                    db.SaveChanges();
+                    message = DateTime.Now + " Se deshabilito el usuario: " + user.Email;
+                    log.LogAlert(message);
+                }
+                catch (Exception ex)
+                {
+                    message = DateTime.Now + "Error al deshabilitar: " + ex;
+                    log.LogError(message);
+                    throw ex;
+                }
+            }
+            else
             {
                 user.LockoutEnabled = true;
                 try
                 {
                     db.Entry(user).State = EntityState.Modified;
                     db.SaveChanges();
+                    message = DateTime.Now + " Se deshabilito el usuario: " + user.Email;
+                    log.LogAlert(message);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    throw;
+                    message = DateTime.Now + "Error al deshabilitar: " + ex;
+                    log.LogError(message);
+                    throw ex;
                 }
-                
             }
+
             return RedirectToAction("Index", "Home");
         }
 
@@ -251,6 +272,8 @@ namespace Proyecto.Controllers
         // POST: /Account/LogOff
         public ActionResult LogOff()
         {
+            string message =DateTime.Now+" El usuario: "+User.Identity.GetUserName()+" cerro la sesión";
+            log.LogAlert(message);
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
             return RedirectToAction("Index", "Home");
         }

@@ -14,16 +14,36 @@
                     <div class="card-body">
                         <table class="table table-striped">
                             <thead class="bg-primary text-white">
-                                @if (Session["Rol"].ToString() != "ADMIN")
+                                @if (Session["Rol"] != null)
                                 {
-                                    <tr>
-                                        <th>
-                                            @Html.DisplayNameFor(model => model.Name)
-                                        </th>
-                                        <th>
-                                            @Html.DisplayNameFor(model => model.Credits)
-                                        </th>
-                                    </tr>
+                                    if (Session["Rol"].ToString() != "ADMIN")
+                                    {
+                                        <tr>
+                                            <th>
+                                                @Html.DisplayNameFor(model => model.Name)
+                                            </th>
+                                            <th>
+                                                @Html.DisplayNameFor(model => model.Credits)
+                                            </th>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <th>
+                                                @Html.DisplayNameFor(model => model.Name)
+                                            </th>
+                                            <th>
+                                                @Html.DisplayNameFor(model => model.Credits)
+                                            </th>
+                                            <th>
+                                                @Html.DisplayNameFor(model => model.Price)
+                                            </th>
+                                            <th>
+                                                @Html.DisplayNameFor(model => model.Schedules)
+                                            </th>
+                                        </tr>
+                                    }
                                 }
                                 else
                                 {
@@ -34,21 +54,32 @@
                                         <th>
                                             @Html.DisplayNameFor(model => model.Credits)
                                         </th>
-                                        <th>
-                                            @Html.DisplayNameFor(model => model.Price)
-                                        </th>
-                                        <th>
-                                            @Html.DisplayNameFor(model => model.Schedules)
-                                        </th>
                                     </tr>
                                 }
                             </thead>
                             <tbody>
                                 @foreach (var item in Model)
                                 {
-                                    if (Session["Rol"].ToString() != "ADMIN")
+                                    if (Session["Rol"] != null)
                                     {
-                                        if (item.Schedules > 0)
+                                        if (Session["Rol"].ToString() != "ADMIN")
+                                        {
+                                            if (item.Schedules > 0)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        @Html.DisplayFor(modelItem => item.Name)
+                                                    </td>
+                                                    <td>
+                                                        @Html.DisplayFor(modelItem => item.Credits)
+                                                    </td>
+                                                    <td>
+                                                        <a href="/Schedules/Details/@item.CourseId" class="btn btn-primary">Ver horarios</a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                        else
                                         {
                                             <tr>
                                                 <td>
@@ -58,31 +89,17 @@
                                                     @Html.DisplayFor(modelItem => item.Credits)
                                                 </td>
                                                 <td>
-                                                    <a href="/Schedules/List/@item.CourseId" class="btn btn-primary">Ver horarios</a>
+                                                    @Html.DisplayFor(modelItem => item.Price)
                                                 </td>
-                                            </tr>
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <tr>
-                                            <td>
-                                                @Html.DisplayFor(modelItem => item.Name)
-                                            </td>
-                                            <td>
-                                                @Html.DisplayFor(modelItem => item.Credits)
-                                            </td>
-                                            <td>
-                                                @Html.DisplayFor(modelItem => item.Price)
-                                            </td>
-                                            <td>
-                                                @Html.DisplayFor(modelItem => item.Schedules)
-                                            </td>
-                                            <td>
-                                                <a href="/Schedules/Create/@item.CourseId" class="btn btn-primary">Agregar horario</a>
-                                                <a href="/Schedules/List/@item.CourseId" class="btn btn-primary">Ver horarios</a>
-                                                @if (item.Schedules == 0)
-                                                {
+                                                <td>
+                                                    @Html.DisplayFor(modelItem => item.Schedules)
+                                                </td>
+                                                <td>
+                                                    @if (item.Schedules != 0)
+                                                    {
+                                                        <a href="/Schedules/Details/@item.CourseId" class="btn btn-primary">Ver horarios</a>
+                                                    }
+                                                    <a href="/Schedules/Create/@item.CourseId" class="btn btn-primary">Agregar horario</a>
                                                     <a href="/Courses/Edit/@item.CourseId" class="btn btn-success">Editar</a>
                                                     <a class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#DeleteModal">Eliminar</a>
                                                     <div class="modal fade" id="DeleteModal" tabindex="-1" aria-labelledby="DeleteModalLabel" aria-hidden="true">
@@ -102,9 +119,26 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                }
-                                            </td>
-                                        </tr>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (item.Schedules > 0)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @Html.DisplayFor(modelItem => item.Name)
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(modelItem => item.Credits)
+                                                </td>
+                                                <td>
+                                                    <a href="/Schedules/Details/@item.CourseId" class="btn btn-primary">Ver horarios</a>
+                                                </td>
+                                            </tr>
+                                        }
                                     }
                                 }
                             </tbody>

@@ -13,7 +13,7 @@ create Table Courses
 (CourseId int identity(1,1) not null,
 Name nvarchar(256),
 Credits int not null,
-Price decimal(10,2) not null,
+Price float not null,
 primary key(CourseId))
 
 create Table Schedules
@@ -33,17 +33,27 @@ create Table Scores
 (IdScore int identity(1,1) not null,
 IdSchedule int not null,
 StudentId nvarchar(128) not null,
-StudentScore decimal(10,2) not null,
+StudentScore float not null,
 primary key(IdScore))
 
 alter table Scores add foreign key (IdSchedule) references Schedules(IdSchedule);
 alter table Scores add foreign key (StudentId) references AspNetUsers(Id);
 
+create Table ScoreDetails
+(
+IdScore int not null,
+IdDetail int not null,
+Name nvarchar(256) not null,
+Score float not null,
+Percentage int not null,
+primary key(IdScore,IdDetail));
+
+alter Table ScoreDetails add foreign key (IdScore) references Scores(IdScore);
+
 create Table Enrollments
 (IdEnrollment int identity(1,1) not null,
 StudentId nvarchar(128) not null,
 Date date not null,
-Total decimal(10,2) not null,
 primary key(IdEnrollment))
 
 alter table Enrollments add foreign key (StudentId) references AspNetUsers(Id);
@@ -59,12 +69,25 @@ alter table EnrollmentDetails add foreign key (IdSchedule) references Schedules(
 
 create Table Bills
 (IdBill int identity(1,1) not null,
-IdEnrollment int not null,
-Discount decimal(10,2) not null,
-Total decimal (10,2) not null,
+StudentId nvarchar(128) not null,
+Date date not null,
+Subtotal float not null,
+Discount float not null,
+Total float not null,
 primary key(IdBill))
 
-alter table Bills add foreign key (IdEnrollment) references Enrollments(IdEnrollment);
+alter table Bills add foreign key (StudentId) references AspNetUsers(Id);
+
+create Table BillDetails
+(IdBill int not null,
+IdDetail int not null,
+IdSchedule int not null,
+Name nvarchar(256) not null,
+Credits int not null,
+Price float not null,
+primary key(IdBill,IdDetail))
+
+alter table BillDetails add foreign key (IdBill) references Bills(IdBill);
 
 insert into AspNetRoles(Id,Name)
 values(NEWID(),'ADMIN'),
@@ -120,6 +143,12 @@ select * from Enrollments;
 select * from EnrollmentDetails;
 
 select * from Bills;
+
+select * from BillDetails;
+
+select * from Scores;
+
+select * from ScoreDetails;
 */
 
 

@@ -35,7 +35,7 @@
                                     <ul class="dropdown-menu">
                                         @Html.ActionLink("Crear Usuario", "Register", "Account", routeValues: null, htmlAttributes: new { title = "Crear Usuario", @class = "dropdown-item" })
                                         <li>
-                                            <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#EditModal">Editar Usuario</a>
+                                            <a role="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#EditModal">Editar Usuario</a>
                                         </li>
                                     </ul>
                                     <div class="modal fade" id="EditModal" tabindex="-1" aria-labelledby="EditModalLabel" aria-hidden="true">
@@ -68,13 +68,13 @@
                                     <ul class="dropdown-menu">
                                         @Html.ActionLink("Crear Curso", "Create", "Courses", routeValues: null, htmlAttributes: new { title = "Crear Curso", @class = "dropdown-item" })
                                         @Html.ActionLink("Lista de Cursos", "Index", "Courses", routeValues: null, htmlAttributes: new { title = "Lista de Cursos", @class = "dropdown-item" })
+                                        <li>
+                                            <a class="dropdown-item" role="button" data-bs-toggle="modal" data-bs-target="#EnrollmentModal">Consultar Matrícula</a>
+                                        </li>
                                     </ul>
-                                </li>
-                                <li>
-                                    <a class="nav-link" role="button" data-bs-toggle="modal" data-bs-target="#EnrollmentModal">Consultar Matrícula</a>
-                                    <div class="modal fade" id="EnrollmentModal" tabindex="-1" aria-labelledby="EnrollmenttModalLabel" aria-hidden="true">
+                                    <div class="modal fade" id="EnrollmentModal" tabindex="-1" aria-labelledby="EnrollmentModalLabel" aria-hidden="true">
                                         <div class="modal-dialog">
-                                            @using (Html.BeginForm("Details", "EnrollmentDetails", FormMethod.Post, new { role = "form" }))
+                                            @using (Html.BeginForm("DetailsAdmin", "Enrollments", FormMethod.Post, new { role = "form" }))
                                             {
                                                 <div class="modal-content">
                                                     <div class="modal-header">
@@ -105,7 +105,17 @@
                                     <ul class="dropdown-menu">
                                         @Html.ActionLink("Lista de Cursos", "Index", "Courses", routeValues: null, htmlAttributes: new { title = "Lista de Cursos", @class = "dropdown-item" })
                                         @Html.ActionLink("Matricular Curso", "Index", "Enrollments", routeValues: null, htmlAttributes: new { title = "Matricular Curso", @class = "dropdown-item" })
-                                        @Html.ActionLink("Mis cursos", "Index", "EnrollmentDetails", routeValues: null, htmlAttributes: new { title = "Mis Cursos", @class = "dropdown-item" })
+                                        @Html.ActionLink("Mis cursos", "Details", "Enrollments", routeValues: null, htmlAttributes: new { title = "Mis Cursos", @class = "dropdown-item" })
+                                    </ul>
+                                </li>
+                            }
+                            else
+                            {
+                                <li>
+                                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">Cursos</a>
+                                    <ul class="dropdown-menu">
+                                        @Html.ActionLink("Lista de Cursos", "Index", "Courses", routeValues: null, htmlAttributes: new { title = "Lista de Cursos", @class = "dropdown-item" })
+                                        @Html.ActionLink("Mis cursos", "Index", "Scores", routeValues: null, htmlAttributes: new { title = "Mis Cursos", @class = "dropdown-item" })
                                     </ul>
                                 </li>
                             }

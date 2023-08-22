@@ -1,0 +1,142 @@
+﻿@model Proyecto.Models.CourseDetailsViewModel
+@{
+    ViewBag.Title = "Course Schedules";
+}
+
+<main>
+    <div class="container" style="margin-top: 50px;">
+        <div class="row">
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Lista de Horarios de @Model.Name</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead class="bg-primary text-white">
+                                @if (Session["Rol"] != null)
+                                {
+                                    if (Session["Rol"].ToString() != "ADMIN")
+                                    {
+                                       <tr>
+                                           <th>
+                                               Día
+                                           </th>
+                                           <th>
+                                               Hora De Inicio
+                                           </th>
+                                           <th>
+                                               Hora De Finalización
+                                           </th>
+                                       </tr>
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <th>
+                                                Día
+                                            </th>
+                                            <th>
+                                                Hora De Inicio
+                                            </th>
+                                            <th>
+                                                Hora De Finalización
+                                            </th>
+                                            <th>
+                                                Profesor
+                                            </th>
+                                            <th>
+                                                Estudiantes
+                                            </th>
+                                        </tr>
+                                    }
+
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <th>
+                                            Día
+                                        </th>
+                                        <th>
+                                            Hora De Inicio
+                                        </th>
+                                        <th>
+                                            Hora De Finalización
+                                        </th>
+                                    </tr>
+                                }
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.List.ToList())
+                                {
+                                    if (Session["Rol"] != null)
+                                    {
+                                        if (Session["Rol"].ToString() != "ADMIN")
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @item.Day
+                                                </td>
+                                                <td>
+                                                    @item.StartTime
+                                                </td>
+                                                <td>
+                                                    @item.EndTime
+                                                </td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @item.Day
+                                                </td>
+                                                <td>
+                                                    @item.StartTime
+                                                </td>
+                                                <td>
+                                                    @item.EndTime
+                                                </td>
+                                                <td>
+                                                    @item.Name
+                                                </td>
+                                                <td>
+                                                    @item.Students
+                                                </td>
+                                                @if (item.Students != 0)
+                                                {
+                                                    <td>
+                                                        <a href="#" role="button" class="btn btn-primary">Ver Estudiantes</a>
+                                                    </td>
+                                                  
+                                                }
+                                            </tr>
+                                        }
+
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td>
+                                                @item.Day
+                                            </td>
+                                            <td>
+                                                @item.StartTime
+                                            </td>
+                                            <td>
+                                                @item.EndTime
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+
