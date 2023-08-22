@@ -11,14 +11,17 @@ namespace Proyecto.Models
         [Key]
         public int IdBill { get; set; }
 
-        public int IdEnrollment { get; set; }
+        public string StudentId { get; set; }
+        
+        [Display(Name ="Fecha")]
+        public DateTime Date { get; set; }
 
-        //public Enrollment Enrollments { get; set; }
+        public double Subtotal { get; set; }
 
         [Display(Name = "Descuento")]
-        public decimal Discount { get; set; }
+        public double Discount { get; set; }
 
-        public decimal Total { get; set; }
+        public double Total { get; set; }
     }
 
     public class BillViewModel
@@ -39,10 +42,13 @@ namespace Proyecto.Models
         public List<BillDetails> Details { get; set; }
 
         [Required]
-        public decimal Discount { get; set; }
+        public double SubTotal { get; set; }
 
         [Required]
-        public decimal Total { get; set; }
+        public double Discount { get; set; }
+
+        [Required]
+        public double Total { get; set; }
     }
 
     public class BillDetails
@@ -51,6 +57,9 @@ namespace Proyecto.Models
         public string Name { get; set; }
 
         [Required]
-        public decimal Price { get; set; }
+        public int Credits { get; set; }
+
+        [Required]
+        public double Price { get; set; }
     }
 }

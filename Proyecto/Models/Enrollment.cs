@@ -15,10 +15,8 @@ namespace Proyecto.Models
         public string StudentId { get; set; }
 
         //public AspNetUser AspNetUsers { get; set; }
-
+        
         public DateTime Date { get; set; }
-
-        public decimal Total { get; set; }
 
         //public ICollection<EnrollmentDetail> EnrollmentDetails { get; set; }
 

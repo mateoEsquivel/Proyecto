@@ -167,10 +167,12 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\BillsController.cs" />
     <Compile Include="Controllers\CoursesController.cs" />
-    <Compile Include="Controllers\EnrollmentDetailsController.cs" />
     <Compile Include="Controllers\EnrollmentsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
+    <Compile Include="Controllers\SchedulesController.cs" />
+    <Compile Include="Controllers\ScoresController.cs" />
+    <Compile Include="CustomFilters\LogAlerts.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -179,19 +181,19 @@
       <DependentUpon>202307290303364_actualizacionTablas.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\AspNetRole.cs" />
     <Compile Include="Models\AspNetUser.cs" />
     <Compile Include="Models\AspNetUserRole.cs" />
     <Compile Include="Models\Bill.cs" />
+    <Compile Include="Models\BillDetail.cs" />
     <Compile Include="Models\Context.cs" />
     <Compile Include="Models\Course.cs" />
     <Compile Include="Models\Enrollment.cs" />
     <Compile Include="Models\EnrollmentDetail.cs" />
     <Compile Include="Models\IdentityModels.cs" />
-    <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="Models\Schedule.cs" />
     <Compile Include="Models\Score.cs" />
+    <Compile Include="Models\ScoreDetail.cs" />
     <Compile Include="Models\UserData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
@@ -261,10 +263,14 @@
     <Content Include="Views\Enrollments\Index.cshtml" />
     <Content Include="Views\Enrollments\ScheduleList.cshtml" />
     <Content Include="Views\Enrollments\List.cshtml" />
-    <Content Include="Views\Enrollments\Create.cshtml" />
-    <Content Include="Views\EnrollmentDetails\Index.cshtml" />
     <Content Include="Views\Bills\Details.cshtml" />
-    <Content Include="Views\EnrollmentDetails\Details.cshtml" />
+    <Content Include="Views\Scores\Index.cshtml" />
+    <Content Include="Views\Scores\Students.cshtml" />
+    <Content Include="Views\Schedules\Details.cshtml" />
+    <Content Include="Views\Scores\Details.cshtml" />
+    <Content Include="Views\Scores\Edit.cshtml" />
+    <Content Include="Views\Enrollments\Details.cshtml" />
+    <Content Include="Views\Enrollments\DetailsAdmin.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

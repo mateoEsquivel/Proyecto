@@ -75,14 +75,14 @@ namespace Proyecto.Controllers
         // GET: /Home/Index
         public ActionResult Index()
         {
-            Session["Aux"] = null;
-            Session["Rol"] = null;
             Session["detail"] = null;
             if (Request.IsAuthenticated)
             {
                 var user = UserManager.FindById(User.Identity.GetUserId());
                 if (user.LockoutEnabled)
                 {
+                    Session["Rol"] = null;
+                    Session["Aux"] = null;
                     AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                 }
                else
@@ -92,18 +92,24 @@ namespace Proyecto.Controllers
                     {
                         Session["Rol"] = "ADMIN";
                     }
+                    else if(Roles.Contains("PROFESSOR"))
+                    {
+                        Session["Rol"] = "PROFESSOR";
+                       
+                    }
                     else
                     {
-                        if(Roles.Contains("PROFESSOR"))
-                        {
-                            Session["Rol"] = "PROFESSOR";
-                        }
                         Session["Rol"] = "STUDENT";
                     }
-                    
                     Session["Aux"] = true;
                }
             }
+            else
+            {
+                Session["Aux"] = null;
+                Session["Rol"] = null;
+            }
+
             return View();
         }
 

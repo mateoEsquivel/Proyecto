@@ -9,7 +9,14 @@
             <div class="col-md-9">
                 <div class="card">
                     <div class="card-header">
-                        <h4>Lista de horarios del curso: @Session["Course"].ToString()</h4>
+                        <h4>Lista de horarios del curso: @ViewData["Course"].ToString()</h4>
+                        @if (Session["Time"] != null)
+                        {
+                            <hr />
+                            <div class="alert alert-danger" role="alert">
+                                @Session["Time"].ToString()
+                            </div>
+                        }
                     </div>
                     <div class="card-body">
                         <table class="table table-striped">
@@ -23,8 +30,6 @@
                                     </th>
                                     <th>
                                         @Html.DisplayNameFor(model => model.EndTime)
-                                    </th>
-                                    <th>
                                     </th>
                                 </tr>
                             </thead>

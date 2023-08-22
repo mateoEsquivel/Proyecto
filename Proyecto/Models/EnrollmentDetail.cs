@@ -32,7 +32,7 @@ namespace Proyecto.Models
         public int IdSchedule { get; set; }
 
         [Required]
-        [Display(Name = "Curso")]
+        [Display(Name = " Curso")]
         public string Name { get; set; }
 
         [Required]
@@ -53,7 +53,7 @@ namespace Proyecto.Models
 
         [Required]
         [Display(Name = "Precio")]
-        public decimal Price { get; set; }
+        public double Price { get; set; } 
     }
 
     public class DetailView

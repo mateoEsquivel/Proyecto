@@ -33,6 +33,7 @@
                         <thead>
                             <tr>
                                 <th>Curso</th>
+                                <th class="text-center">Créditos</th>
                                 <th class="text-center">Precio</th>
                             </tr>
                         </thead>
@@ -41,6 +42,7 @@
                             {
                                 <tr>
                                     <td class="col-md-9">@item.Name</td>
+                                    <td class="col-md-1 text-center">@item.Credits</td>
                                     <td class="col-md-1 text-center">@item.Price</td>
                                 </tr>
                             }
@@ -49,10 +51,16 @@
                                 <td>   </td>
                                 <td class="text-right">
                                     <p>
+                                        <strong>SubTotal: </strong>
+                                    </p>
+                                    <p>
                                         <strong>Decuento: </strong>
                                     </p>
                                 </td>
                                 <td class="text-center">
+                                    <p>
+                                        @Model.SubTotal
+                                    </p>
                                     <p>
                                         @Model.Discount
                                     </p>
@@ -66,8 +74,9 @@
                             </tr>
                         </tbody>
                     </table>
-                    @if (Session["detail"] != null)
+                    @if (Session["Rol"].ToString() == "STUDENT")
                     {
+
                         <a href="/Home/Index" class="btn btn-primary btn-lg btn-block">
                             Volver
                         </a>

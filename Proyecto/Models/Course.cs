@@ -19,7 +19,7 @@ namespace Proyecto.Models
         public int Credits { get; set; }
 
         [Display(Name = "Precio")]
-        public decimal Price { get; set; }
+        public double Price { get; set; }
 
         //public ICollection<Schedule> Schedules { get; set; }
     }
@@ -36,7 +36,7 @@ namespace Proyecto.Models
 
         [Required]
         [Display(Name = "Precio")]
-        public decimal Price { get; set; }
+        public double Price { get; set; }
     }
 
     public class CourseListViewModel
@@ -54,10 +54,40 @@ namespace Proyecto.Models
 
         [Required]
         [Display(Name = "Precio")]
-        public decimal Price { get; set; }
+        public double Price { get; set; }
 
         [Required]
         [Display(Name = "Horarios")]
         public int Schedules { get; set;}
+    }
+
+    public class CourseDetailsViewModel
+    {
+        [Required]
+        public string Name { get; set; }
+
+        [Required]
+        public List<CourseDetailsListViewModel> List { get; set; }
+    }
+
+    public class CourseDetailsListViewModel
+    {
+        [Required]
+        public int ScheduleId { get; set; }
+
+        [Required]
+        public string Day { get; set; }
+
+        [Required]
+        public TimeSpan StartTime { get; set; }
+
+        [Required]
+        public TimeSpan EndTime { get; set; }
+
+        [Required]
+        public string Name { get; set; }
+
+        [Required]
+        public int Students { get; set; }
     }
 }

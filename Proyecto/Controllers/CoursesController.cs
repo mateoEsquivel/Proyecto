@@ -10,6 +10,9 @@ using System.Net;
 using System.Data.Entity;
 using Microsoft.SqlServer.Server;
 using System.Web.Configuration;
+using Proyecto.CustomFilters;
+using System.Data;
+using System.Web.Services.Description;
 
 namespace Proyecto.Controllers
 {
@@ -19,6 +22,7 @@ namespace Proyecto.Controllers
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
         private Context db = new Context();
+        private LogAlerts log = new LogAlerts();
 
         public CoursesController()
         {
@@ -55,49 +59,11 @@ namespace Proyecto.Controllers
             }
         }
 
-        //List of User Roles
-        private List<string> List(string id)
-        {
-            var user = UserManager.FindById(id);
-            var UserRoles = user.Roles.ToList();
-            var List = new List<string>();
-            var Rol = new AspNetRole();
-            foreach (var role in UserRoles)
-            {
-                Rol = db.AspRole.SingleOrDefault(e => e.Id == role.RoleId);
-                if (Rol != null)
-                {
-                    List.Add(Rol.Name);
-                }
-            }
-            return List;
-        }
-
         //
         // GET: /Courses/Index
         [AllowAnonymous]
         public ActionResult Index()
         {
-            if(User.Identity.IsAuthenticated)
-            {
-                var Roles = List(User.Identity.GetUserId());
-                if (Roles.Contains("ADMIN"))
-                {
-                    Session["Rol"] = "ADMIN";
-                }
-                else
-                {
-                    if (Roles.Contains("PROFESSOR"))
-                    {
-                        Session["Rol"] = "PROFESSOR";
-                    }
-                    Session["Rol"] = "STUDENT";
-                }
-            }
-            else
-            {
-                Session["Rol"] = "STUDENT";
-            }
             var c=db.Course.ToList();
             var courses = new List<CourseListViewModel>();
             foreach(var course in c)
@@ -134,6 +100,7 @@ namespace Proyecto.Controllers
         {
             bool registered = false;
             string message = null;
+            string m;
             if (ModelState.IsValid)
             {
                 var exist = db.Course.SingleOrDefault(e => e.Name == model.Name);
@@ -154,13 +121,16 @@ namespace Proyecto.Controllers
                         db.Course.Add(course);
                         db.SaveChanges();
                         message = "Curso registrado";
+                        m = DateTime.Now + " Nuevo curso: " + course.Name + " registrado";
+                        log.LogAlert(m);
                         registered = true;
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        message = "Error al Registrar curso";
-                    }
-                    
+                        message = DateTime.Now + " Error al registrar curso: " + ex;
+                        log.LogError(message);
+                        throw ex;
+                    } 
                 }
             }
             ViewData["Message"] = message;
@@ -179,8 +149,11 @@ namespace Proyecto.Controllers
         [Authorize(Roles = "ADMIN")]
         public ActionResult Edit(int? id)
         {
+            string message;
             if (id == null)
             {
+                message=DateTime.Now + " El id del curso estaba vació, Acción: Courses/Edit";
+                log.LogError(message);
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
@@ -188,6 +161,8 @@ namespace Proyecto.Controllers
 
             if (course == null)
             {
+                message = DateTime.Now + " No se encontró el curso, Acción: Courses/Edit";
+                log.LogError(message);
                 return HttpNotFound();
             }
 
@@ -202,6 +177,7 @@ namespace Proyecto.Controllers
         {
             bool edited = false;
             string message = null;
+            string m;
             if (ModelState.IsValid)
             {
                 var exist = db.Course.SingleOrDefault(e => e.Name == model.Name && e.CourseId != model.CourseId);
@@ -230,11 +206,14 @@ namespace Proyecto.Controllers
                             db.Entry(course).State = EntityState.Modified;
                             db.SaveChanges();
                             message = "Curso editado";
+                            m = DateTime.Now + " El curso: " + course.Name + " fue editado";
+                            log.LogAlert(m);
                             edited = true;
                         }
                         catch (Exception ex)
                         {
-                            message = "Error al editar el curso";
+                            message = DateTime.Now + " Error al editar curso: " + ex;
+                            log.LogError(message);
                             throw ex;
                         }
                         
@@ -258,8 +237,11 @@ namespace Proyecto.Controllers
         [Authorize(Roles = "ADMIN")]
         public ActionResult Delete(int? id)
         {
+            string message;
             if (id == null)
             {
+                message = DateTime.Now + " El id del curso estaba vació, Acción: Courses/Delete";
+                log.LogError(message);
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
@@ -267,18 +249,80 @@ namespace Proyecto.Controllers
 
             if(course==null)
             {
+                message = DateTime.Now + " No se encontró el curso, Acción: Courses/Delete";
+                log.LogError(message);
                 return HttpNotFound();
             }
 
-            try
+            string query = "Select * from Schedules where CourseId=" + id;
+            var schedules=db.Database.SqlQuery<Schedule>(query);
+            if(schedules.ToList().Count()!=0)
             {
-                db.Course.Remove(course);
-                db.SaveChanges();
+                var enrollments = db.Enrrollment.ToList();
+                foreach(var schedule in schedules.ToList())
+                {
+                    query = "Delete from EnrollmentDetails where IdSchedule=" + schedule.IdSchedule;
+                    db.Database.ExecuteSqlCommand(query);
+                    db.SaveChanges();
+                    query = "Delete from Scores where IdSchedule=" + schedule.IdSchedule;
+                    db.Database.ExecuteSqlCommand(query);
+                    db.SaveChanges();
+                    query = "Delete from Schedules where IdSchedule=" + schedule.IdSchedule;
+                    db.Database.ExecuteSqlCommand(query);
+                    db.SaveChanges();
+                }
+                foreach(var enrollment in enrollments)
+                {
+                    query = "Select * from EnrollmentDetails where IdEnrollment=" + enrollment.IdEnrollment;
+                    var details = db.Database.SqlQuery<EnrollmentDetail>(query);
+                    if(details.ToList().Count()==0)
+                    {
+                        try
+                        {
+                            db.Enrrollment.Remove(enrollment);
+                            db.SaveChanges();
+                        }
+                        catch(Exception ex) 
+                        {
+                            message = DateTime.Now + " Error al eliminar la matrícula: " + ex;
+                            log.LogError(message);
+                            throw ex;
+                        }
+                    }  
+                }
+
+                try
+                {
+                    db.Course.Remove(course);
+                    db.SaveChanges();
+                    message = DateTime.Now + " Se elimino el curso: " + course.Name;
+                    log.LogAlert(message);
+                }
+                catch (Exception ex)
+                {
+                    message = DateTime.Now + " Error al eliminar el curso: " + ex;
+                    log.LogError(message);
+                    throw ex;
+                }
+
             }
-            catch
+            else
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                try
+                {
+                    db.Course.Remove(course);
+                    db.SaveChanges();
+                    message = DateTime.Now + " Se elimino el curso: " + course.Name;
+                    log.LogAlert(message);
+                }
+                catch (Exception ex)
+                {
+                    message = DateTime.Now + " Error al eliminar el curso: " + ex;
+                    log.LogError(message);
+                    throw ex;
+                }
             }
+
             return RedirectToAction("Index");
         }
     }
